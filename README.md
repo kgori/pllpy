@@ -9,7 +9,7 @@ Install requirements:
 Installing libpll:
   - on Mac PLL can be install via [homebrew](http://brew.sh/) using the homebrew-science tap
 
-      brew tap homebrew/homebrew-science
-      brew install --HEAD libpll
+    brew tap homebrew/homebrew-science
+    brew install --HEAD libpll
 
 Documentation will follow.

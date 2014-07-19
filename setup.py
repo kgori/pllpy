@@ -1,4 +1,7 @@
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    from distutils.core import setup, Extension
 
 from Cython.Distutils import build_ext
 import pkg_resources

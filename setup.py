@@ -6,7 +6,7 @@ import pkg_resources
 data_dir = pkg_resources.resource_filename("autowrap", "data_files")
 
 ext = Extension("pllpy",
-                sources = ['src/pllpy.cpp', 'src/pllml.cpp'],
+                sources = ['src/pllpy.pyx', 'src/pllml.cpp'],
                 language="c++",
                 include_dirs = [data_dir],
                 libraries=['pll-sse3-pthreads'],

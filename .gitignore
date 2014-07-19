@@ -1,3 +1,6 @@
+# Cython compiled
+src/pllpy.cpp
+
 # Mac cruft
 *.DS_Store*
 *._.*

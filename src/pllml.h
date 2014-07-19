@@ -20,85 +20,96 @@ using namespace std;
 
 class pll {
 public:
-	// Make and destroy
-	pll();
-	pll(string alignment_file, string tree, string partition_file, int num_threads = 1);
-	virtual ~pll();
-
-	// Model data IO
-	void                   load_alignment_file(string path);
-    void                   load_tree_file(string path);
-    void                   load_partition_file(string path);
-    void                   load_tree_string(string nwk);
-
-    // Model management
-    void                   create_instance();
-    void                   initialise_model();
-    void                   destroy_model();
+    // Make and destroy
+    pll(string alignment_file, string partition_file, string tree, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(string alignment_file, string partition_file, int num_threads = 1, long rns=0xDEADBEEF);
+    virtual ~pll();
 
     // Run optimisations
-	void                   optimise(bool estimate_model=true);
-	void                   optimise_branch_lengths(int num_iter=32);
-	void                   optimise_model();
+    void                   optimise(bool estimate_model=true);
+    void                   optimise_branch_lengths(int num_iter=32);
+    void                   optimise_model();
 
-	// Collect results
-	double                 get_likelihood();
-	vector<string>         get_partition_names();
-	string                 get_partition_name(int partition);
-	vector<string>		   get_model_names();
-	string				   get_model_name(int partition);
-	vector<double>         get_alphas();
-	double                 get_alpha(int partition);
-	vector<vector<double>> get_frequencies();
-	vector<double>         get_frequencies_vector(int partition);
-	vector<vector<double>> get_rates();
-	vector<double>         get_rates_vector(int partition);
-	double                 get_epsilon();
-	int                    get_number_of_partitions();
-	int                    get_number_of_threads();
-	string                 get_tree();
-	vector<vector<double>> get_empirical_frequencies();
+    // Getters
+    double                 get_likelihood();
+    vector<string>         get_partition_names();
+    string                 get_partition_name(int partition);
+    vector<string>         get_model_names();
+    string                 get_model_name(int partition);
+    double                 get_epsilon();
+    vector<double>         get_alphas();
+    double                 get_alpha(int partition);
+    vector<vector<double>> get_frequencies();
+    vector<double>         get_frequencies_vector(int partition);
+    vector<vector<double>> get_rates();
+    vector<double>         get_rates_vector(int partition);
+    int                    get_number_of_partitions();
+    int                    get_number_of_threads();
+    string                 get_tree();
+    vector<vector<double>> get_empirical_frequencies();
 
-	// Set parameters
-	void                   set_epsilon(double epsilon);
-	void                   set_alpha(double alpha, int partition, bool optimisable);
-	void                   set_frequencies(vector<double> freqs, int partition, bool optimisable);
-	void                   set_rates(vector<double> rates, int partition, bool optimisable);
-	void                   set_optimisable_alpha(int partition, bool optimisable);
-	void                   set_optimisable_frequencies(int partition, bool optimisable);
-	void                   set_optimisable_rates(int partition, bool optimisable);
-	void                   set_number_of_threads(int threads);
+    // Setters
+    void                   set_parsimony_tree();
+    void                   set_random_tree();
+    void                   set_epsilon(double epsilon);
+    void                   set_alpha(double alpha, int partition, bool optimisable);
+    void                   set_frequencies(vector<double> freqs, int partition, bool optimisable);
+    void                   set_rates(vector<double> rates, int partition, bool optimisable);
+    void                   set_optimisable_alpha(int partition, bool optimisable);
+    void                   set_optimisable_frequencies(int partition, bool optimisable);
+    void                   set_optimisable_rates(int partition, bool optimisable);
+    void                   set_number_of_threads(int threads);
 
-	// Parameter management
-	void                   link_alpha_parameters(string linkage);
-	void                   link_frequencies(string linkage);
-	void                   link_rates(string linkage);
+    // Partition management
+    void                   link_alpha_parameters(string linkage);
+    void                   link_frequencies(string linkage);
+    void                   link_rates(string linkage);
 
-	// Check settings
-	bool                   is_dna(int partition);
-	bool                   is_protein(int partition);
-	bool                   is_optimisable_alpha(int partition);
-	bool                   is_optimisable_frequencies(int partition);
-	bool                   is_optimisable_rates(int partition);
+    // Check settings
+    bool                   is_dna(int partition);
+    bool                   is_protein(int partition);
+    bool                   is_optimisable_alpha(int partition);
+    bool                   is_optimisable_frequencies(int partition);
+    bool                   is_optimisable_rates(int partition);
 
 private:
-	void                   _evaluate_likelihood();
-	double                 _vector_sum(vector<double>);
-	bool                   _approx_eq(double a, double b);
-	void                   _partitions_bounds_check(int partition);
-	bool                   _is_file(string filename);
-	bool                   _is_tree_string(string tree_string);
-	string				   _model_name(int model_num);
+    // Model initialisation
+    void                   _init_attr(int num_threads, long rns);
+    void                   _init_instance();
+    void                   _init_alignment_file(string path);
+    void                   _init_partition_file(string path);
+    void                   _init_tree_file(string path);
+    void                   _init_tree_string(string nwk);
+    void                   _init_tree_random();
+    void                   _init_model();
 
-	pllAlignmentData * alignment_data;
-	pllInstance * tr;
-	pllNewickTree * newick;
-	partitionList * partitions;
-	pllInstanceAttr attr;
-	string alignment_file;
-	string tree_file;
-	string partition_file;
-	bool _is_ready = false;
+    // Helper functions
+    void                   _evaluate_likelihood();
+    double                 _vector_sum(vector<double>);
+    bool                   _approx_eq(double a, double b);
+    bool                   _is_file(string filename);
+    bool                   _is_tree_string(string tree_string);
+    string                 _model_name(int model_num);
+    void                   _destroy_model();
+
+    // Error checking
+    void                   _check_partitions_bounds(int partition);
+    void                   _check_model_ready();
+
+    // Data
+    pllAlignmentData *alignment  = nullptr;
+    pllInstance      *tr         = nullptr;
+    pllNewickTree    *newick     = nullptr;
+    partitionList    *partitions = nullptr;
+    pllInstanceAttr attr;
+    string alignment_file;
+    string tree_file;
+    string partition_file;
+    bool _instance_ready   = false;
+    bool _model_ready      = false;
+    bool _alignment_ready  = false;
+    bool _partitions_ready = false;
+    bool _tree_ready       = false;
 };
 
 #endif /* PLL_WRAPPER_H_ */

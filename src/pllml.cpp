@@ -1,9 +1,20 @@
 /*
- * pllml.cpp
- *
- *  Created on: Jul 17, 2014
- *      Author: kgori
- */
+pllml.cpp
+Copyright (C) 2014  Kevin Gori
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <stdexcept>
 #include <fstream>
@@ -85,7 +96,7 @@ int pll::get_number_of_partitions() {
 vector<string> pll::get_partition_names() {
     _check_model_ready();
     vector<string> names;
-    for (size_t i = 0; i < get_number_of_partitions(); ++i) {
+    for (int i = 0; i < get_number_of_partitions(); ++i) {
         names.push_back(get_partition_name(i));
     }
     return names;

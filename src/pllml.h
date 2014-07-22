@@ -60,7 +60,6 @@ public:
     vector<vector<double>> get_empirical_frequencies();
 
     // Setters
-    void                   set_random_tree();
     void                   set_epsilon(double epsilon);
     void                   set_alpha(double alpha, int partition, bool optimisable);
     void                   set_frequencies(vector<double> freqs, int partition, bool optimisable);
@@ -91,7 +90,7 @@ private:
     void                   _init_tree_file(string path);
     void                   _init_tree_string(string nwk);
     void                   _init_tree_random();
-    void                   _init_model();
+    void                   _init_model(bool parsimony);
 
     // Helper functions
     void                   _evaluate_likelihood();

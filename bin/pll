@@ -64,11 +64,11 @@ def set_model_parameters_from_json(instance, json_file):
 
 def set_partition_model_parameters(instance, partition, alpha, freqs, rates):
     if alpha is not None:
-        instance.set_alpha(partition, alpha, True)
+        instance.set_alpha(alpha, partition, True)
     if freqs is not None:
-        instance.set_frequencies(partition, freqs, True)
+        instance.set_frequencies(freqs, partition, True)
     if rates is not None:
-        instance.set_rates(partition, rates, True)
+        instance.set_rates(rates, partition, True)
 
 def set_model_parameters(instance, alpha, freqs, rates):
     for i in range(instance.get_number_of_partitions()):
@@ -85,12 +85,12 @@ def set_parameter_optimisation(instance, optalpha, optfreqs, optrates):
 def main():
     args = parse_args()
     if args.tree in ['random', 'parsimony']:
-        pll = pllpy.pll(args.alignment, args.partitions, args.threads, args.rns)
+        if args.tree == 'parsimony':
+            pll = pllpy.pll(args.alignment, args.partitions, True, args.threads, args.rns)
+        else:
+            pll = pllpy.pll(args.alignment, args.partitions, False, args.threads, args.rns)
     else:
         pll = pllpy.pll(args.alignment, args.partitions, args.tree, args.threads, args.rns)
-    if args.tree == 'parsimony':
-        pll.set_parsimony_tree()
-        pll.get_likelihood()
 
     set_model_parameters(pll, args.alpha, args.freqs, args.rates)
     set_parameter_optimisation(pll, args.optalpha, args.optfreqs, args.optrates)

@@ -40,7 +40,7 @@ pll::pll(string alignment_file, string partition_file, string tree, int num_thre
         cerr << "Didn't understand tree: " << tree << endl;
         throw exception();
     }
-    _init_model();
+    _init_model(false);
 }
 
 pll::pll(string alignment_file, string partition_file, bool parsimony, int num_threads, long rns) {
@@ -49,8 +49,7 @@ pll::pll(string alignment_file, string partition_file, bool parsimony, int num_t
     _init_alignment_file(alignment_file);
     _init_partition_file(partition_file);
     _init_tree_random();
-    if (parsimony) pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
-    _init_model();
+    _init_model(parsimony);
 }
 
 pll::~pll() {
@@ -204,11 +203,6 @@ vector<vector<double> > pll::get_empirical_frequencies() {
         vec_2d.push_back(row_vec);
     }
     return vec_2d;
-}
-
-void pll::set_random_tree() {
-    _check_model_ready();
-    pllMakeRandomTree(tr);
 }
 
 void pll::set_epsilon(double epsilon) {
@@ -435,7 +429,7 @@ void pll::_init_tree_random() {
     _tree_ready = true;
 }
 
-void pll::_init_model() {
+void pll::_init_model(bool parsimony_tree) {
     if (!_instance_ready || !_alignment_ready || !_partitions_ready || !_tree_ready) {
         cerr << "Must load alignment, tree and partitions before initialising the model" << endl;
         throw exception();
@@ -443,6 +437,9 @@ void pll::_init_model() {
     if (!pllLoadAlignment(tr, alignment, partitions, PLL_DEEP_COPY)) {
         cerr << "Model finalisation error" << endl;
         throw exception();
+    }
+    if (parsimony_tree) {
+        pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
     }
     pllInitModel(tr, partitions, alignment);
     _model_ready = true;

@@ -43,12 +43,13 @@ pll::pll(string alignment_file, string partition_file, string tree, int num_thre
     _init_model();
 }
 
-pll::pll(string alignment_file, string partition_file, int num_threads, long rns) {
+pll::pll(string alignment_file, string partition_file, bool parsimony, int num_threads, long rns) {
     _init_attr(num_threads, rns);
     _init_instance();
     _init_alignment_file(alignment_file);
     _init_partition_file(partition_file);
     _init_tree_random();
+    if (parsimony) pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
     _init_model();
 }
 
@@ -137,7 +138,6 @@ vector<vector<double>> pll::get_frequencies() {
 vector<double> pll::get_frequencies_vector(int partition) {
     _check_model_ready();
     _check_partitions_bounds(partition);
-    cout << "optimise freqs: " << partitions->partitionData[partition]->optimizeBaseFrequencies << endl;
     vector<double> freqs_vec;
     if (!_model_ready) {
         cerr << "Model isn't finalised" << endl;
@@ -204,11 +204,6 @@ vector<vector<double> > pll::get_empirical_frequencies() {
         vec_2d.push_back(row_vec);
     }
     return vec_2d;
-}
-
-void pll::set_parsimony_tree() {
-    _check_model_ready();
-    pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
 }
 
 void pll::set_random_tree() {

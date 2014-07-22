@@ -1,21 +1,4 @@
 #cython: c_string_encoding=ascii  # for cython>=0.19
-
-# pllml.cpp
-# Copyright (C) 2014  Kevin Gori
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from  libcpp.string  cimport string as libcpp_string
 from  libcpp.set     cimport set as libcpp_set
 from  libcpp.vector  cimport vector as libcpp_vector
@@ -123,9 +106,6 @@ cdef class pll:
         py_result = <bool>_r
         return py_result
     
-    def set_parsimony_tree(self):
-        self.inst.get().set_parsimony_tree()
-    
     def link_rates(self, bytes linkage ):
         assert isinstance(linkage, bytes), 'arg linkage wrong type'
     
@@ -202,21 +182,23 @@ cdef class pll:
     
         self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partition_file), (<libcpp_string>tree), (<int>num_threads), (<long int>rns)))
     
-    def _init_1(self, bytes alignment_file , bytes partition_file ,  num_threads ,  rns ):
+    def _init_1(self, bytes alignment_file , bytes partition_file ,  parsimony ,  num_threads ,  rns ):
         assert isinstance(alignment_file, bytes), 'arg alignment_file wrong type'
         assert isinstance(partition_file, bytes), 'arg partition_file wrong type'
+        assert isinstance(parsimony, (int, long)), 'arg parsimony wrong type'
         assert isinstance(num_threads, (int, long)), 'arg num_threads wrong type'
         assert isinstance(rns, (int, long)), 'arg rns wrong type'
     
     
     
     
-        self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partition_file), (<int>num_threads), (<long int>rns)))
+    
+        self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partition_file), (<bool>parsimony), (<int>num_threads), (<long int>rns)))
     
     def __init__(self, *args):
         if (len(args)==5) and (isinstance(args[0], bytes)) and (isinstance(args[1], bytes)) and (isinstance(args[2], bytes)) and (isinstance(args[3], (int, long))) and (isinstance(args[4], (int, long))):
              self._init_0(*args)
-        elif (len(args)==4) and (isinstance(args[0], bytes)) and (isinstance(args[1], bytes)) and (isinstance(args[2], (int, long))) and (isinstance(args[3], (int, long))):
+        elif (len(args)==5) and (isinstance(args[0], bytes)) and (isinstance(args[1], bytes)) and (isinstance(args[2], (int, long))) and (isinstance(args[3], (int, long))) and (isinstance(args[4], (int, long))):
              self._init_1(*args)
         else:
                raise Exception('can not handle type of %s' % (args,))

@@ -21,7 +21,7 @@ cdef extern from "pllml.h":
     cdef cppclass pll:
         # Make
         pll(libcpp_string alignment_file, libcpp_string partition_file, libcpp_string tree, int num_threads, long rns) except +
-        pll(libcpp_string alignment_file, libcpp_string partition_file, int num_threads, long rns) except +
+        pll(libcpp_string alignment_file, libcpp_string partition_file, bool parsimony, int num_threads, long rns) except +
 
         # Run optimisations
         void optimise(bool estimate_model) nogil except +
@@ -47,7 +47,6 @@ cdef extern from "pllml.h":
         libcpp_vector[libcpp_vector[double]] get_empirical_frequencies() except +
 
         # Setters
-        void set_parsimony_tree() except +
         void set_epsilon(double epsilon) except +
         void set_alpha(double alpha, int partition, bool optimisable) except +
         void set_frequencies(libcpp_vector[double] freqs, int partition, bool optimisable) except +

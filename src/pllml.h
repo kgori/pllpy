@@ -33,7 +33,7 @@ class pll {
 public:
     // Make and destroy
     pll(string alignment_file, string partition_file, string tree, int num_threads = 1, long rns=0xDEADBEEF);
-    pll(string alignment_file, string partition_file, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(string alignment_file, string partition_file, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
 
     // Run optimisations
@@ -60,7 +60,6 @@ public:
     vector<vector<double>> get_empirical_frequencies();
 
     // Setters
-    void                   set_parsimony_tree();
     void                   set_random_tree();
     void                   set_epsilon(double epsilon);
     void                   set_alpha(double alpha, int partition, bool optimisable);

@@ -244,6 +244,7 @@ void pll::set_frequencies(vector<double> freqs, int partition, bool optimisable)
         cerr << "Frequencies vector is the wrong length. Should be " << num_states << endl;
         throw exception();
     }
+    set_optimisable_frequencies(partition, true); // frequencies only updated if optimisable flag is true
     pllSetFixedBaseFrequencies(&(freqs[0]), num_states, partition, partitions, tr);
     set_optimisable_frequencies(partition, optimisable);
 }

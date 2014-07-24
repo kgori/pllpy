@@ -192,7 +192,7 @@ vector<vector<double> > pll::get_empirical_frequencies() {
     _check_model_ready();
     double ** ef;
     vector<vector<double>> vec_2d;
-    ef = pllBaseFrequenciesGTR(partitions, alignment);
+    ef = pllBaseFrequenciesAlignment(alignment, partitions);
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
         vector<double> row_vec;
@@ -435,14 +435,14 @@ void pll::_init_model(bool parsimony_tree) {
         cerr << "Must load alignment, tree and partitions before initialising the model" << endl;
         throw exception();
     }
-    if (!pllLoadAlignment(tr, alignment, partitions, PLL_DEEP_COPY)) {
+    if (!pllLoadAlignment(tr, alignment, partitions)) {
         cerr << "Model finalisation error" << endl;
         throw exception();
     }
     if (parsimony_tree) {
         pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
     }
-    pllInitModel(tr, partitions, alignment);
+    pllInitModel(tr, partitions);
     _model_ready = true;
 }
 

@@ -12,7 +12,7 @@ ext = Extension("pllpy",
                 sources = ['src/pllpy.pyx', 'src/pllml.cpp'],
                 language="c++",
                 include_dirs = [data_dir],
-                libraries=['pll-sse3-pthreads'],
+                libraries=['pll-avx-pthreads'],
                 extra_compile_args=['-std=c++11'],
                )
 

@@ -1,6 +1,10 @@
 # Cython compiled
 src/pllpy.cpp
 
+# Wheel
+
+wheelhouse/
+
 # Mac cruft
 *.DS_Store*
 *._.*

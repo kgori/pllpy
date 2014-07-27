@@ -62,6 +62,7 @@ pll::~pll() {
 
 void pll::optimise(bool estimate_model) {
     _check_model_ready();
+    tr->start = tr->nodep[1];
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
     int pll_bool = estimate_model ? PLL_TRUE : PLL_FALSE;
     pllRaxmlSearchAlgorithm(tr, partitions, pll_bool);
@@ -69,18 +70,21 @@ void pll::optimise(bool estimate_model) {
 
 void pll::optimise_branch_lengths(int num_iter) {
     _check_model_ready();
+    tr->start = tr->nodep[1];
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
     pllOptimizeBranchLengths(tr, partitions, num_iter);
 }
 
 void pll::optimise_model() {
     _check_model_ready();
+    tr->start = tr->nodep[1];
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
     pllOptimizeModelParameters(tr, partitions, tr->likelihoodEpsilon);
 }
 
 double pll::get_likelihood() {
     _check_model_ready();
+    tr->start = tr->nodep[1];
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
     return tr->likelihood;
 }

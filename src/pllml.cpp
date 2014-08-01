@@ -25,11 +25,16 @@ extern "C" {
 
 // PUBLIC METHODS
 
-pll::pll(string alignment_file, string partition_file, string tree, int num_threads, long rns) {
+pll::pll(string alignment_file, string partitions, string tree, int num_threads, long rns) {
     _init_attr(num_threads, rns);
     _init_instance();
     _init_alignment_file(alignment_file);
-    _init_partition_file(partition_file);
+    if (_is_file(partitions)) {
+        _init_partition_file(partitions);
+    }
+    else {
+        _init_partition_string(partitions);
+    }
     if (_is_file(tree)) {
         _init_tree_file(tree);
     }
@@ -43,11 +48,16 @@ pll::pll(string alignment_file, string partition_file, string tree, int num_thre
     _init_model(false);
 }
 
-pll::pll(string alignment_file, string partition_file, bool parsimony, int num_threads, long rns) {
+pll::pll(string alignment_file, string partitions, bool parsimony, int num_threads, long rns) {
     _init_attr(num_threads, rns);
     _init_instance();
     _init_alignment_file(alignment_file);
-    _init_partition_file(partition_file);
+    if (_is_file(partitions)) {
+        _init_partition_file(partitions);
+    }
+    else {
+        _init_partition_string(partitions);
+    }
     _init_tree_random();
     _init_model(parsimony);
 }
@@ -196,7 +206,7 @@ vector<vector<double> > pll::get_empirical_frequencies() {
     _check_model_ready();
     double ** ef;
     vector<vector<double>> vec_2d;
-    ef = pllBaseFrequenciesAlignment(alignment, partitions);
+    ef = pllBaseFrequenciesInstance(tr, partitions);
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
         vector<double> row_vec;
@@ -367,8 +377,13 @@ void pll::_init_instance() {
 }
 
 void pll::_init_alignment_file(string path) {
+    if (!_is_file(path)) {
+        cerr << "Couldn't find the alignment file " << path << endl;
+        throw exception();
+    }
     alignment = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str());
     if (!alignment) {
+        cerr << "Couldn't parse the alignment at " << path << endl;
         throw exception();
     }
     _alignment_ready = true;
@@ -381,6 +396,23 @@ void pll::_init_partition_file(string path) {
     }
     pllQueue * partitionInfo;
     partitionInfo = pllPartitionParse(path.c_str());
+    if (!pllPartitionsValidate(partitionInfo, alignment)) {
+        cerr << "partitions parse error" << endl;
+        throw exception();
+    }
+    partitions = pllPartitionsCommit(partitionInfo, alignment);
+    pllAlignmentRemoveDups(alignment, partitions);
+    pllQueuePartitionsDestroy(&partitionInfo);
+    _partitions_ready = true;
+}
+
+void pll::_init_partition_string(string p_string) {
+    if (!_alignment_ready) {
+        cerr << "Must load alignment before partitions" << endl;
+        throw exception();
+    }
+    pllQueue * partitionInfo;
+    partitionInfo = pllPartitionParseString(p_string.c_str());
     if (!pllPartitionsValidate(partitionInfo, alignment)) {
         cerr << "partitions parse error" << endl;
         throw exception();
@@ -447,6 +479,17 @@ void pll::_init_model(bool parsimony_tree) {
         pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
     }
     pllInitModel(tr, partitions);
+
+    if (alignment) {
+        pllAlignmentDataDestroy (alignment);
+        alignment = nullptr;
+    }
+
+    if (newick) {
+        pllNewickParseDestroy (&newick);
+        newick = nullptr;
+    }
+
     _model_ready = true;
 }
 

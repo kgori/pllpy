@@ -208,14 +208,11 @@ def main():
         pll.set_epsilon(args.epsilon)
         set_parameter_optimisation(pll, args.optalpha, args.optfreqs, args.optrates)
         pll.get_likelihood()
-        print ("ok1")
         if args.opttopol:
             pll.optimise(args.optalpha and args.optfreqs and args.optrates)
-        pll.optimise_model()
-        pll.optimise_branch_lengths(args.brlen_opts)
-        print ("ok2")
-
-        print ("ok3")
+        else:
+            pll.optimise_model()
+            pll.optimise_branch_lengths(args.brlen_opts)
 
         if args.output:
             write_model_json(pll, args.output)

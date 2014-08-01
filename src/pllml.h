@@ -32,8 +32,8 @@ using namespace std;
 class pll {
 public:
     // Make and destroy
-    pll(string alignment_file, string partition_file, string tree, int num_threads = 1, long rns=0xDEADBEEF);
-    pll(string alignment_file, string partition_file, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(string alignment_file, string partitions, string tree, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(string alignment_file, string partitions, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
 
     // Run optimisations
@@ -87,6 +87,7 @@ private:
     void                   _init_instance();
     void                   _init_alignment_file(string path);
     void                   _init_partition_file(string path);
+    void                   _init_partition_string(string p_string);
     void                   _init_tree_file(string path);
     void                   _init_tree_string(string nwk);
     void                   _init_tree_random();

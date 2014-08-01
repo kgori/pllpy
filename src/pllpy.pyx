@@ -169,9 +169,9 @@ cdef class pll:
         py_result = <double>_r
         return py_result
     
-    def _init_0(self, bytes alignment_file , bytes partition_file , bytes tree ,  num_threads ,  rns ):
+    def _init_0(self, bytes alignment_file , bytes partitions , bytes tree ,  num_threads ,  rns ):
         assert isinstance(alignment_file, bytes), 'arg alignment_file wrong type'
-        assert isinstance(partition_file, bytes), 'arg partition_file wrong type'
+        assert isinstance(partitions, bytes), 'arg partitions wrong type'
         assert isinstance(tree, bytes), 'arg tree wrong type'
         assert isinstance(num_threads, (int, long)), 'arg num_threads wrong type'
         assert isinstance(rns, (int, long)), 'arg rns wrong type'
@@ -180,11 +180,11 @@ cdef class pll:
     
     
     
-        self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partition_file), (<libcpp_string>tree), (<int>num_threads), (<long int>rns)))
+        self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partitions), (<libcpp_string>tree), (<int>num_threads), (<long int>rns)))
     
-    def _init_1(self, bytes alignment_file , bytes partition_file ,  parsimony ,  num_threads ,  rns ):
+    def _init_1(self, bytes alignment_file , bytes partitions ,  parsimony ,  num_threads ,  rns ):
         assert isinstance(alignment_file, bytes), 'arg alignment_file wrong type'
-        assert isinstance(partition_file, bytes), 'arg partition_file wrong type'
+        assert isinstance(partitions, bytes), 'arg partitions wrong type'
         assert isinstance(parsimony, (int, long)), 'arg parsimony wrong type'
         assert isinstance(num_threads, (int, long)), 'arg num_threads wrong type'
         assert isinstance(rns, (int, long)), 'arg rns wrong type'
@@ -193,7 +193,7 @@ cdef class pll:
     
     
     
-        self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partition_file), (<bool>parsimony), (<int>num_threads), (<long int>rns)))
+        self.inst = shared_ptr[_pll](new _pll((<libcpp_string>alignment_file), (<libcpp_string>partitions), (<bool>parsimony), (<int>num_threads), (<long int>rns)))
     
     def __init__(self, *args):
         if (len(args)==5) and (isinstance(args[0], bytes)) and (isinstance(args[1], bytes)) and (isinstance(args[2], bytes)) and (isinstance(args[3], (int, long))) and (isinstance(args[4], (int, long))):

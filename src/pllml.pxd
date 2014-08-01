@@ -20,8 +20,8 @@ from libcpp cimport bool
 cdef extern from "pllml.h":
     cdef cppclass pll:
         # Make
-        pll(libcpp_string alignment_file, libcpp_string partition_file, libcpp_string tree, int num_threads, long rns) except +
-        pll(libcpp_string alignment_file, libcpp_string partition_file, bool parsimony, int num_threads, long rns) except +
+        pll(libcpp_string alignment_file, libcpp_string partitions, libcpp_string tree, int num_threads, long rns) except +
+        pll(libcpp_string alignment_file, libcpp_string partitions, bool parsimony, int num_threads, long rns) except +
 
         # Run optimisations
         void optimise(bool estimate_model) nogil except +

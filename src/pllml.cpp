@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdexcept>
 #include <fstream>
+#include <algorithm>
 #include "pllml.h"
 extern "C" {
 #include <pll/pll.h>
@@ -199,7 +200,9 @@ string pll::get_tree() {
                     tr->start->back, PLL_TRUE, PLL_TRUE,
                     PLL_TRUE, PLL_FALSE, PLL_FALSE,
                     PLL_SUMMARIZE_LH, 0,0);
-    return tr->tree_string;
+    string tree(tr->tree_string);
+    tree.erase(std::remove(tree.begin(), tree.end(), '\n'), tree.end());
+    return tree;
 }
 
 vector<vector<double> > pll::get_empirical_frequencies() {

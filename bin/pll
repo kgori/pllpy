@@ -66,6 +66,7 @@ def write_model_json(instance, json_file):
         data['frequencies'] = instance.get_frequencies_vector(i)
         if instance.is_dna(i):
             data['rates'] = instance.get_rates_vector(i)
+        data['name'] = instance.get_partition_name(i)
         model['partitions'][i] = data
     if hasattr(json_file, 'write'):
         json.dump(model, json_file, indent=4)

@@ -33,6 +33,12 @@ cdef class pll:
     
         self.inst.get().set_optimisable_rates((<int>partition), (<bool>optimisable))
     
+    def optimise_freqs(self):
+        self.inst.get().optimise_freqs()
+    
+    def optimise_alphas(self):
+        self.inst.get().optimise_alphas()
+    
     def set_optimisable_alpha(self,  partition ,  optimisable ):
         assert isinstance(partition, (int, long)), 'arg partition wrong type'
         assert isinstance(optimisable, (int, long)), 'arg optimisable wrong type'
@@ -106,10 +112,18 @@ cdef class pll:
         py_result = <bool>_r
         return py_result
     
+    def set_epsilon(self, double epsilon ):
+        assert isinstance(epsilon, float), 'arg epsilon wrong type'
+    
+        self.inst.get().set_epsilon((<double>epsilon))
+    
     def link_rates(self, bytes linkage ):
         assert isinstance(linkage, bytes), 'arg linkage wrong type'
     
         self.inst.get().link_rates((<libcpp_string>linkage))
+    
+    def optimise_rates(self):
+        self.inst.get().optimise_rates()
     
     def get_alphas(self):
         _r = self.inst.get().get_alphas()
@@ -222,10 +236,16 @@ cdef class pll:
         py_result = <bool>_r
         return py_result
     
-    def optimise(self,  estimate_model ):
-        assert isinstance(estimate_model, (int, long)), 'arg estimate_model wrong type'
+    def optimise(self,  rates ,  freqs ,  alphas ,  branches ):
+        assert isinstance(rates, (int, long)), 'arg rates wrong type'
+        assert isinstance(freqs, (int, long)), 'arg freqs wrong type'
+        assert isinstance(alphas, (int, long)), 'arg alphas wrong type'
+        assert isinstance(branches, (int, long)), 'arg branches wrong type'
     
-        self.inst.get().optimise((<bool>estimate_model))
+    
+    
+    
+        self.inst.get().optimise((<bool>rates), (<bool>freqs), (<bool>alphas), (<bool>branches))
     
     def set_alpha(self, double alpha ,  partition ,  optimisable ):
         assert isinstance(alpha, float), 'arg alpha wrong type'
@@ -241,16 +261,21 @@ cdef class pll:
         cdef list py_result = _r
         return py_result
     
-    def set_epsilon(self, double epsilon ):
-        assert isinstance(epsilon, float), 'arg epsilon wrong type'
+    def optimise_tree_search(self,  estimate_model ):
+        assert isinstance(estimate_model, (int, long)), 'arg estimate_model wrong type'
     
-        self.inst.get().set_epsilon((<double>epsilon))
+        self.inst.get().optimise_tree_search((<bool>estimate_model))
     
     def get_partition_name(self,  partition ):
         assert isinstance(partition, (int, long)), 'arg partition wrong type'
     
         cdef libcpp_string _r = self.inst.get().get_partition_name((<int>partition))
         py_result = <libcpp_string>_r
+        return py_result
+    
+    def get_frac_change(self):
+        cdef double _r = self.inst.get().get_frac_change()
+        py_result = <double>_r
         return py_result
     
     def link_frequencies(self, bytes linkage ):

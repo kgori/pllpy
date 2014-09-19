@@ -37,9 +37,13 @@ public:
     virtual ~pll();
 
     // Run optimisations
-    void                   optimise(bool estimate_model=true);
+    void                   optimise(bool rates, bool freqs, bool alphas, bool branches);
+    void                   optimise_alphas();
     void                   optimise_branch_lengths(int num_iter=32);
+    void                   optimise_freqs();
     void                   optimise_model();
+    void                   optimise_rates();
+    void                   optimise_tree_search(bool estimate_model);
 
     // Getters
     double                 get_likelihood();
@@ -58,6 +62,7 @@ public:
     int                    get_number_of_threads();
     string                 get_tree();
     vector<vector<double>> get_empirical_frequencies();
+    double                 get_frac_change();
 
     // Setters
     void                   set_epsilon(double epsilon);
@@ -101,6 +106,11 @@ private:
     bool                   _is_tree_string(string tree_string);
     string                 _model_name(int model_num);
     void                   _destroy_model();
+    void                   _update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange);
+    void                   _update_all_brlens(double old_fracchange, double new_fracchange);
+    void                   _update_brlens_recursive(nodeptr p, int tips, double old_fracchange, double new_fracchange);
+    void                   _update_brlen(nodeptr p, double old_fracchange, double new_fracchange);
+    bool                   isTip(int number, int maxTips);
 
     // Error checking
     void                   _check_partitions_bounds(int partition);

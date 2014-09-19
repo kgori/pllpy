@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 #include "pllml.h"
 extern "C" {
 #include <pll/pll.h>
@@ -71,12 +72,28 @@ pll::~pll() {
     tr = nullptr;
 }
 
-void pll::optimise(bool estimate_model) {
+void pll::optimise_tree_search(bool estimate_model) {
     _check_model_ready();
     tr->start = tr->nodep[1];
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
     int pll_bool = estimate_model ? PLL_TRUE : PLL_FALSE;
     pllRaxmlSearchAlgorithm(tr, partitions, pll_bool);
+}
+
+void pll::optimise_model() {
+    optimise(true, true, true, false);
+}
+
+void pll::optimise_rates() {
+    optimise(false, true, false, false);
+}
+
+void pll::optimise_freqs() {
+    optimise(true, false, false, false);
+}
+
+void pll::optimise_alphas() {
+    optimise(false, false, true, false);
 }
 
 void pll::optimise_branch_lengths(int num_iter) {
@@ -86,11 +103,71 @@ void pll::optimise_branch_lengths(int num_iter) {
     pllOptimizeBranchLengths(tr, partitions, num_iter);
 }
 
-void pll::optimise_model() {
+void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
+    if (!rates && !freqs && !alphas && !branches) return;
+    int i = 0;
     _check_model_ready();
+    linkageList *alphaList = partitions->alphaList,
+                *rateList  = partitions->rateList,
+                *freqList  = partitions->freqList;
+    double current_likelihood;
+    double modelEpsilon = 0.0001; // same as in modOpt
     tr->start = tr->nodep[1];
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-    pllOptimizeModelParameters(tr, partitions, tr->likelihoodEpsilon);
+    for (;;) {
+        i++;
+        current_likelihood = tr->likelihood;
+        cerr << "  iter " << i << " current lnl = " << current_likelihood << endl;
+
+        if (rates) {
+            pllOptRatesGeneric(tr, partitions, modelEpsilon, rateList);
+            pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+            cerr << "    rates:  " << tr->likelihood << endl;
+        }
+
+        if (branches) {
+            pllOptimizeBranchLengths(tr, partitions, 3);
+            pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+            cerr << "    brlen1: " << tr->likelihood << endl;
+        }
+
+        if (freqs) {
+            pllOptBaseFreqs(tr, partitions, modelEpsilon, freqList);
+            pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+            cerr << "    freqs:  " << tr->likelihood << endl;
+        }
+
+        if (branches) {
+            pllOptimizeBranchLengths(tr, partitions, 3);
+            pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+            cerr << "    brlen2: " << tr->likelihood << endl;
+        }
+
+        if (alphas) {
+            pllOptAlphasGeneric (tr, partitions, modelEpsilon, alphaList);
+            pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+            cerr << "    alphas: " << tr->likelihood << endl;
+        }
+
+        if (branches) {
+            pllOptimizeBranchLengths(tr, partitions, 3);
+            pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+            cerr << "    brlen3: " << tr->likelihood << endl;
+        }
+
+        if(!((tr->likelihood - current_likelihood) > 0)) {
+            cerr << tr->likelihood << " " << current_likelihood << endl;
+            cerr << "Difference: " << tr->likelihood - current_likelihood << endl;
+            throw exception();
+        }
+
+        if (!(fabs(current_likelihood - tr->likelihood) > tr->likelihoodEpsilon)){
+            cerr << "current lnl = " << current_likelihood << endl
+                 << "tr lnl      = " << tr->likelihood << endl
+                 << "END" << endl;
+            break;
+        }
+    }
 }
 
 double pll::get_likelihood() {
@@ -229,6 +306,7 @@ void pll::set_epsilon(double epsilon) {
 void pll::set_rates(vector<double> rates,
         int partition, bool optimisable) {
     _check_model_ready();
+    double old_fracchange = get_frac_change();
     if (is_dna(partition)) {
         _check_partitions_bounds(partition);
         int num_states = partitions->partitionData[partition]->states;
@@ -237,8 +315,10 @@ void pll::set_rates(vector<double> rates,
             cerr << "Rates vector is the wrong length. Should be " << num_rates << endl;
             throw exception();
         }
-        pllSetFixedSubstitutionMatrix(&(rates[0]), num_rates, partition, partitions, tr);
+        pllSetSubstitutionMatrix(&(rates[0]), num_rates, partition, partitions, tr);
         set_optimisable_rates(partition, optimisable);
+        double new_fracchange = get_frac_change();
+        _update_q_matrix_and_brlens(partition, old_fracchange, new_fracchange);
     }
 }
 
@@ -252,6 +332,7 @@ void pll::set_alpha(double alpha, int partition, bool optimisable) {
 void pll::set_frequencies(vector<double> freqs, int partition, bool optimisable) {
     _check_model_ready();
     _check_partitions_bounds(partition);
+    double old_fracchange = get_frac_change();
     if (!_approx_eq(_vector_sum(freqs), 1)) {
         cerr << "Not setting frequencies: Frequencies do not sum to 1" << endl;
         throw exception();
@@ -264,6 +345,9 @@ void pll::set_frequencies(vector<double> freqs, int partition, bool optimisable)
     set_optimisable_frequencies(partition, true); // frequencies only updated if optimisable flag is true
     pllSetFixedBaseFrequencies(&(freqs[0]), num_states, partition, partitions, tr);
     set_optimisable_frequencies(partition, optimisable);
+    double new_fracchange = get_frac_change();
+    _update_q_matrix_and_brlens(partition, old_fracchange, new_fracchange);
+
 }
 
 void pll::link_alpha_parameters(string linkage) {
@@ -342,7 +426,7 @@ void pll::set_optimisable_rates(int partition, bool optimisable) {
     int pll_bool = optimisable ? PLL_TRUE : PLL_FALSE;
     if (is_dna(partition)) {
         partitions->partitionData[partition]->optimizeSubstitutionRates = pll_bool;
-    //  partitions->dirty = PLL_TRUE;
+        partitions->dirty = PLL_TRUE;
         _evaluate_likelihood();
     }
 }
@@ -351,15 +435,19 @@ void pll::set_optimisable_alpha(int partition, bool optimisable) {
     _check_partitions_bounds(partition);
     int pll_bool = optimisable ? PLL_TRUE : PLL_FALSE;
     partitions->partitionData[partition]->optimizeAlphaParameter = pll_bool;
-//  partitions->dirty = PLL_TRUE;
+    partitions->dirty = PLL_TRUE;
     _evaluate_likelihood();
+}
+
+double pll::get_frac_change() {
+    return tr->fracchange;
 }
 
 void pll::set_optimisable_frequencies(int partition, bool optimisable) {
     _check_partitions_bounds(partition);
     int pll_bool = optimisable ? PLL_TRUE : PLL_FALSE;
     partitions->partitionData[partition]->optimizeBaseFrequencies = pll_bool;
-//  partitions->dirty = PLL_TRUE;
+    partitions->dirty = PLL_TRUE;
     _evaluate_likelihood();
 }
 
@@ -648,4 +736,50 @@ string pll::_model_name(int model_num) {
         break;
     }
     return name;
+}
+
+void pll::_update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange) {
+    pllInitReversibleGTR(tr, partitions, model);
+#if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
+    pllMasterBarrier (tr, partitions, PLL_THREAD_COPY_RATES);
+#endif
+    _update_all_brlens (old_fracchange, new_fracchange);
+}
+
+void pll::_update_all_brlens(double old_fracchange, double new_fracchange) {
+    nodeptr p;
+
+    p = tr->start;
+    if(!(isTip(p->number, tr->mxtips))) throw exception();
+
+    _update_brlens_recursive(p->back, tr->mxtips, old_fracchange, new_fracchange);
+}
+
+void pll::_update_brlens_recursive(nodeptr p, int tips, double old_fracchange, double new_fracchange) {
+    _update_brlen(p, old_fracchange, new_fracchange);
+
+    if (!isTip (p->number, tips)) {
+        _update_brlens_recursive(p->next->back, tips, old_fracchange, new_fracchange);
+        _update_brlens_recursive(p->next->next->back, tips, old_fracchange, new_fracchange);
+    }
+}
+
+void pll::_update_brlen(nodeptr p, double old_fracchange, double new_fracchange) {
+    double z;
+    int j;
+
+    for (j = 0; j < PLL_NUM_BRANCHES; ++ j) {
+        z = exp ((log (p->z[j]) * old_fracchange) / new_fracchange);
+        if (z < PLL_ZMIN) z = PLL_ZMIN;
+        if (z > PLL_ZMAX) z = PLL_ZMAX;
+        p->z[j] = p->back->z[j] = z;
+    }
+}
+
+bool pll::isTip(int number, int maxTips) {
+    if(!(number > 0)) throw exception();
+    if(number <= maxTips)
+        return PLL_TRUE;
+    else
+        return PLL_FALSE;
 }

@@ -24,9 +24,13 @@ cdef extern from "pllml.h":
         pll(libcpp_string alignment_file, libcpp_string partitions, bool parsimony, int num_threads, long rns) except +
 
         # Run optimisations
-        void optimise(bool estimate_model) nogil except +
+        void optimise(bool rates, bool freqs, bool alphas, bool branches) nogil except +
+        void optimise_alphas() nogil except +
         void optimise_branch_lengths(int num_iter) nogil except +
+        void optimise_freqs() nogil except +
         void optimise_model() nogil except +
+        void optimise_rates() nogil except +
+        void optimise_tree_search(bool estimate_model) nogil except +
 
         # Getters
         double                               get_likelihood() nogil except +
@@ -45,6 +49,7 @@ cdef extern from "pllml.h":
         int                                  get_number_of_threads() except +
         libcpp_string                        get_tree() except +
         libcpp_vector[libcpp_vector[double]] get_empirical_frequencies() except +
+        double                               get_frac_change() except +
 
         # Setters
         void set_epsilon(double epsilon) except +

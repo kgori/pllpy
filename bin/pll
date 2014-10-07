@@ -220,11 +220,9 @@ def main():
         else:
             write_model_json(pll, sys.stdout)
 
-        return 0
-
     except:
         raise
-        return 1
+
 
 
 if __name__ == '__main__':

@@ -275,8 +275,8 @@ string pll::get_tree() {
     _check_model_ready();
     pllTreeToNewick(tr->tree_string, tr, partitions,
                     tr->start->back, PLL_TRUE, PLL_TRUE,
-                    PLL_TRUE, PLL_FALSE, PLL_FALSE,
-                    PLL_SUMMARIZE_LH, 0,0);
+                    PLL_FALSE, PLL_FALSE, PLL_FALSE,
+                    0, PLL_FALSE, PLL_FALSE);
     string tree(tr->tree_string);
     tree.erase(std::remove(tree.begin(), tree.end(), '\n'), tree.end());
     return tree;

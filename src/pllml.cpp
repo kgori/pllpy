@@ -719,12 +719,20 @@ string pll::_model_name(int model_num) {
         name = "FLU";
         break;
 
-        case PLL_AUTO :
-        name = "AUTO";
+        case PLL_STMTREV :
+        name = "STMTREV";
         break;
 
-        case PLL_LG4 :
-        name = "LG4";
+        case PLL_LG4M :
+        name = "LG4M";
+        break;
+
+        case PLL_LG4X :
+        name = "LG4X";
+        break;
+
+        case PLL_AUTO :
+        name = "AUTO";
         break;
 
         case PLL_GTR :

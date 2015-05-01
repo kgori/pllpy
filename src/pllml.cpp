@@ -332,7 +332,6 @@ void pll::set_alpha(double alpha, int partition, bool optimisable) {
 void pll::set_frequencies(vector<double> freqs, int partition, bool optimisable) {
     _check_model_ready();
     _check_partitions_bounds(partition);
-    double old_fracchange = get_frac_change();
     if (!_approx_eq(_vector_sum(freqs), 1)) {
         cerr << "Not setting frequencies: Frequencies do not sum to 1" << endl;
         throw exception();
@@ -345,9 +344,11 @@ void pll::set_frequencies(vector<double> freqs, int partition, bool optimisable)
     set_optimisable_frequencies(partition, true); // frequencies only updated if optimisable flag is true
     pllSetFixedBaseFrequencies(&(freqs[0]), num_states, partition, partitions, tr);
     set_optimisable_frequencies(partition, optimisable);
-    double new_fracchange = get_frac_change();
-    _update_q_matrix_and_brlens(partition, old_fracchange, new_fracchange);
+}
 
+void pll::set_tree(string nwk) {
+    _init_tree_string(nwk);
+    _evaluate_likelihood();
 }
 
 void pll::link_alpha_parameters(string linkage) {

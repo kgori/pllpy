@@ -73,6 +73,7 @@ public:
     void                   set_optimisable_frequencies(int partition, bool optimisable);
     void                   set_optimisable_rates(int partition, bool optimisable);
     void                   set_number_of_threads(int threads);
+    void                   set_tree(string nwk);
 
     // Partition management
     void                   link_alpha_parameters(string linkage);

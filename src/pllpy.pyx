@@ -88,6 +88,12 @@ cdef class pll:
         self.inst.get().set_rates(v0, (<int>partition), (<bool>optimisable))
         
     
+    def set_tree(self, bytes nwk):
+        assert isinstance(nwk, bytes), 'arg nwk wrong type'
+
+        self.inst.get().set_tree((<libcpp_string>nwk))
+
+
     def get_model_name(self,  partition ):
         assert isinstance(partition, (int, long)), 'arg partition wrong type'
     

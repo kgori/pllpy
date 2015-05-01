@@ -60,6 +60,7 @@ cdef extern from "pllml.h":
         void set_optimisable_frequencies(int partition, bool optimisable) except +
         void set_optimisable_rates(int partition, bool optimisable) except +
         void set_number_of_threads(int threads)
+        void set_tree(libcpp_string nwk) except +
 
         # Partition management
         void link_alpha_parameters(libcpp_string linkage) except +

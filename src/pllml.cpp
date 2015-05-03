@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdexcept>
-#include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <stdexcept>
 #include "pllml.h"
 extern "C" {
 #include <pll/pll.h>
@@ -66,10 +66,6 @@ pll::pll(string alignment_file, string partitions, bool parsimony, int num_threa
 
 pll::~pll() {
     _destroy_model();
-    alignment = nullptr;
-    newick = nullptr;
-    partitions = nullptr;
-    tr = nullptr;
 }
 
 void pll::optimise_tree_search(bool estimate_model) {
@@ -473,7 +469,7 @@ void pll::_init_alignment_file(string path) {
         cerr << "Couldn't find the alignment file " << path << endl;
         throw exception();
     }
-    alignment = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str());
+    alignment = unique_ptr<pllAlignmentData, AlignmentDeleter>(pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str()));
     if (!alignment) {
         cerr << "Couldn't parse the alignment at " << path << endl;
         throw exception();
@@ -488,12 +484,12 @@ void pll::_init_partition_file(string path) {
     }
     pllQueue * partitionInfo;
     partitionInfo = pllPartitionParse(path.c_str());
-    if (!pllPartitionsValidate(partitionInfo, alignment)) {
+    if (!pllPartitionsValidate(partitionInfo, alignment.get())) {
         cerr << "partitions parse error" << endl;
         throw exception();
     }
-    partitions = pllPartitionsCommit(partitionInfo, alignment);
-    pllAlignmentRemoveDups(alignment, partitions);
+    partitions = pllPartitionsCommit(partitionInfo, alignment.get());
+    pllAlignmentRemoveDups(alignment.get(), partitions);
     pllQueuePartitionsDestroy(&partitionInfo);
     _partitions_ready = true;
 }
@@ -505,12 +501,12 @@ void pll::_init_partition_string(string p_string) {
     }
     pllQueue * partitionInfo;
     partitionInfo = pllPartitionParseString(p_string.c_str());
-    if (!pllPartitionsValidate(partitionInfo, alignment)) {
+    if (!pllPartitionsValidate(partitionInfo, alignment.get())) {
         cerr << "partitions parse error" << endl;
         throw exception();
     }
-    partitions = pllPartitionsCommit(partitionInfo, alignment);
-    pllAlignmentRemoveDups(alignment, partitions);
+    partitions = pllPartitionsCommit(partitionInfo, alignment.get());
+    pllAlignmentRemoveDups(alignment.get(), partitions);
     pllQueuePartitionsDestroy(&partitionInfo);
     _partitions_ready = true;
 }
@@ -520,16 +516,17 @@ void pll::_init_tree_file(string path) {
         cerr << "Must load alignment and partitions before tree" << endl;
         throw exception();
     }
-    newick = pllNewickParseFile(path.c_str());
+    newick = unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseFile(path.c_str()));
     if (!newick) {
         cerr << "tree parse error" << endl;
         throw exception();
     }
-    if (!pllValidateNewick(newick)) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
+    if (!pllValidateNewick(newick.get())) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
         cerr << "invalid tree" << endl;
         throw exception();
     }
-    pllTreeInitTopologyNewick(tr, newick, PLL_FALSE);
+    pllTreeInitTopologyNewick(tr, newick.get(), PLL_FALSE);
+    newick.reset();
     _tree_ready = true;
 }
 
@@ -538,14 +535,15 @@ void pll::_init_tree_string(string nwk) {
         cerr << "Must load alignment and partitions before tree" << endl;
         throw exception();
     }
-    newick = pllNewickParseString(nwk.c_str());
+    newick = unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseString(nwk.c_str()));
     if (!newick) {
         throw exception();
     }
-    if (!pllValidateNewick(newick)) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
+    if (!pllValidateNewick(newick.get())) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
         throw exception();
     }
-    pllTreeInitTopologyNewick(tr, newick, PLL_FALSE);
+    pllTreeInitTopologyNewick(tr, newick.get(), PLL_FALSE);
+    newick.reset();
     _tree_ready = true;
 }
 
@@ -563,7 +561,7 @@ void pll::_init_model(bool parsimony_tree) {
         cerr << "Must load alignment, tree and partitions before initialising the model" << endl;
         throw exception();
     }
-    if (!pllLoadAlignment(tr, alignment, partitions)) {
+    if (!pllLoadAlignment(tr, alignment.get(), partitions)) {
         cerr << "Model finalisation error" << endl;
         throw exception();
     }
@@ -571,23 +569,11 @@ void pll::_init_model(bool parsimony_tree) {
         pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
     }
     pllInitModel(tr, partitions);
-
-    if (alignment) {
-        pllAlignmentDataDestroy (alignment);
-        alignment = nullptr;
-    }
-
-    if (newick) {
-        pllNewickParseDestroy (&newick);
-        newick = nullptr;
-    }
-
+    alignment.reset();
     _model_ready = true;
 }
 
 void pll::_destroy_model() {
-    if (alignment) pllAlignmentDataDestroy(alignment);
-    if (newick) pllNewickParseDestroy(&newick);
     if (partitions) pllPartitionsDestroy(tr, &partitions);
     if (tr) pllDestroyInstance(tr);
 }

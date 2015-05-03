@@ -19,8 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PLL_WRAPPER_H_
 #define PLL_WRAPPER_H_
 
-#include <iostream>
 #include <cstdio>
+#include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 extern "C" {
@@ -28,6 +29,18 @@ extern "C" {
 }
 
 using namespace std;
+
+struct AlignmentDeleter {
+    void operator()(pllAlignmentData *pAlignment) {
+        pllAlignmentDataDestroy(pAlignment);
+    }
+};
+
+struct NewickDeleter {
+    void operator()(pllNewickTree *pNewick) {
+        pllNewickParseDestroy(&pNewick);
+    }
+};
 
 class pll {
 public:
@@ -118,9 +131,9 @@ private:
     void                   _check_model_ready();
 
     // Data
-    pllAlignmentData *alignment  = nullptr;
+    unique_ptr<pllAlignmentData, AlignmentDeleter> alignment;
     pllInstance      *tr         = nullptr;
-    pllNewickTree    *newick     = nullptr;
+    unique_ptr<pllNewickTree, NewickDeleter> newick;
     partitionList    *partitions = nullptr;
     pllInstanceAttr attr;
     string alignment_file;

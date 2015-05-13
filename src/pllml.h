@@ -29,6 +29,24 @@ extern "C" {
 
 using namespace std;
 
+struct AlignmentDeleter {
+    void operator()(pllAlignmentData *pAlignment) {
+        pllAlignmentDataDestroy(pAlignment);
+    }
+};
+
+struct NewickDeleter {
+    void operator()(pllNewickTree *pNewick) {
+        pllNewickParseDestroy(&pNewick);
+    }
+};
+
+struct QueueDeleter {
+    void operator()(pllQueue *pQueue) {
+        pllQueuePartitionsDestroy(&pQueue);
+    }
+};
+
 class pll {
 public:
     // Make and destroy
@@ -118,9 +136,8 @@ private:
     void                   _check_model_ready();
 
     // Data
-    pllAlignmentData *alignment  = nullptr;
+    unique_ptr<pllAlignmentData, AlignmentDeleter> alignment;
     pllInstance      *tr         = nullptr;
-    pllNewickTree    *newick     = nullptr;
     partitionList    *partitions = nullptr;
     pllInstanceAttr attr;
     string alignment_file;
@@ -128,7 +145,6 @@ private:
     string partition_file;
     bool _instance_ready   = false;
     bool _model_ready      = false;
-    bool _alignment_ready  = false;
     bool _partitions_ready = false;
     bool _tree_ready       = false;
 };

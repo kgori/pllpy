@@ -475,31 +475,32 @@ void pll::_init_alignment_file(string path) {
     }
     alignment = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str());
     if (!alignment) {
+        cout << "Trying to parse as fasta" << endl;
+        alignment = unique_ptr<pllAlignmentData, AlignmentDeleter>(pllParseAlignmentFile(PLL_FORMAT_FASTA, path.c_str()));
+    }
+    if (!alignment) {
         cerr << "Couldn't parse the alignment at " << path << endl;
         throw exception();
     }
-    _alignment_ready = true;
 }
 
 void pll::_init_partition_file(string path) {
-    if (!_alignment_ready) {
+    if (!alignment) {
         cerr << "Must load alignment before partitions" << endl;
         throw exception();
     }
-    pllQueue * partitionInfo;
-    partitionInfo = pllPartitionParse(path.c_str());
-    if (!pllPartitionsValidate(partitionInfo, alignment)) {
+    auto partitionInfo = unique_ptr<pllQueue, QueueDeleter>(pllPartitionParse(path.c_str()));
+    if (!pllPartitionsValidate(partitionInfo.get(), alignment.get())) {
         cerr << "partitions parse error" << endl;
         throw exception();
     }
-    partitions = pllPartitionsCommit(partitionInfo, alignment);
-    pllAlignmentRemoveDups(alignment, partitions);
-    pllQueuePartitionsDestroy(&partitionInfo);
+    partitions = pllPartitionsCommit(partitionInfo.get(), alignment.get());
+    pllAlignmentRemoveDups(alignment.get(), partitions);
     _partitions_ready = true;
 }
 
 void pll::_init_partition_string(string p_string) {
-    if (!_alignment_ready) {
+    if (!alignment) {
         cerr << "Must load alignment before partitions" << endl;
         throw exception();
     }
@@ -516,11 +517,11 @@ void pll::_init_partition_string(string p_string) {
 }
 
 void pll::_init_tree_file(string path) {
-    if (!_alignment_ready || !_partitions_ready) {
+    if (!alignment || !_partitions_ready) {
         cerr << "Must load alignment and partitions before tree" << endl;
         throw exception();
     }
-    newick = pllNewickParseFile(path.c_str());
+    auto newick = unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseFile(path.c_str()));
     if (!newick) {
         cerr << "tree parse error" << endl;
         throw exception();
@@ -529,28 +530,28 @@ void pll::_init_tree_file(string path) {
         cerr << "invalid tree" << endl;
         throw exception();
     }
-    pllTreeInitTopologyNewick(tr, newick, PLL_FALSE);
+    pllTreeInitTopologyNewick(tr, newick.get(), PLL_FALSE);
     _tree_ready = true;
 }
 
 void pll::_init_tree_string(string nwk) {
-    if (!_alignment_ready || !_partitions_ready) {
+    if (!alignment || !_partitions_ready) {
         cerr << "Must load alignment and partitions before tree" << endl;
         throw exception();
     }
-    newick = pllNewickParseString(nwk.c_str());
+    auto newick = unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseString(nwk.c_str()));
     if (!newick) {
         throw exception();
     }
     if (!pllValidateNewick(newick)) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
         throw exception();
     }
-    pllTreeInitTopologyNewick(tr, newick, PLL_FALSE);
+    pllTreeInitTopologyNewick(tr, newick.get(), PLL_FALSE);
     _tree_ready = true;
 }
 
 void pll::_init_tree_random() {
-    if (!_alignment_ready || !_partitions_ready) {
+    if (!alignment || !_partitions_ready) {
         cerr << "Must load alignment and partitions before tree" << endl;
         throw exception();
     }
@@ -559,7 +560,7 @@ void pll::_init_tree_random() {
 }
 
 void pll::_init_model(bool parsimony_tree) {
-    if (!_instance_ready || !_alignment_ready || !_partitions_ready || !_tree_ready) {
+    if (!_instance_ready || !alignment || !_partitions_ready || !_tree_ready) {
         cerr << "Must load alignment, tree and partitions before initialising the model" << endl;
         throw exception();
     }

@@ -474,7 +474,6 @@ void pll::_init_alignment_file(std::string path) {
         std::cerr << "Couldn't parse the alignment at " << path << std::endl;
         throw std::exception();
     }
-    _alignment_ready = true;
 }
 
 void pll::_init_partition_file(std::string path) {
@@ -511,6 +510,7 @@ void pll::_init_partition_string(std::string p_string) {
     _partitions_ready = true;
 }
 
+
 void pll::_init_tree_file(std::string path) {
     if (!_alignment_ready || !_partitions_ready) {
         std::cerr << "Must load alignment and partitions before tree" << std::endl;
@@ -536,6 +536,7 @@ void pll::_init_tree_string(std::string nwk) {
         throw std::exception();
     }
     newick = std::unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseString(nwk.c_str()));
+
     if (!newick) {
         throw std::exception();
     }

@@ -41,6 +41,24 @@ struct NewickDeleter {
     }
 };
 
+struct AlignmentDeleter {
+    void operator()(pllAlignmentData *pAlignment) {
+        pllAlignmentDataDestroy(pAlignment);
+    }
+};
+
+struct NewickDeleter {
+    void operator()(pllNewickTree *pNewick) {
+        pllNewickParseDestroy(&pNewick);
+    }
+};
+
+struct QueueDeleter {
+    void operator()(pllQueue *pQueue) {
+        pllQueuePartitionsDestroy(&pQueue);
+    }
+};
+
 class pll {
 public:
     // Make and destroy
@@ -140,7 +158,6 @@ private:
     std::string partition_file;
     bool _instance_ready   = false;
     bool _model_ready      = false;
-    bool _alignment_ready  = false;
     bool _partitions_ready = false;
     bool _tree_ready       = false;
 };

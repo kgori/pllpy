@@ -26,7 +26,6 @@ extern "C" {
 }
 
 // PUBLIC METHODS
-
 pll::pll(std::string alignment_file, std::string partitions, std::string tree, int num_threads, long rns) {
     _init_attr(num_threads, rns);
     _init_instance();
@@ -69,11 +68,10 @@ pll::~pll() {
 }
 
 void pll::optimise_tree_search(bool estimate_model) {
-    _check_model_ready();
     tr->start = tr->nodep[1];
-    pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+    pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
     int pll_bool = estimate_model ? PLL_TRUE : PLL_FALSE;
-    pllRaxmlSearchAlgorithm(tr, partitions, pll_bool);
+    pllRaxmlSearchAlgorithm(tr.get(), partitions, pll_bool);
 }
 
 void pll::optimise_model() {
@@ -93,23 +91,21 @@ void pll::optimise_alphas() {
 }
 
 void pll::optimise_branch_lengths(int num_iter) {
-    _check_model_ready();
     tr->start = tr->nodep[1];
-    pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-    pllOptimizeBranchLengths(tr, partitions, num_iter);
+    pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
+    pllOptimizeBranchLengths(tr.get(), partitions, num_iter);
 }
 
 void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
     if (!rates && !freqs && !alphas && !branches) return;
     int i = 0;
-    _check_model_ready();
     linkageList *alphaList = partitions->alphaList,
                 *rateList  = partitions->rateList,
                 *freqList  = partitions->freqList;
     double current_likelihood;
     double modelEpsilon = 0.0001; // same as in modOpt
     tr->start = tr->nodep[1];
-    pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+    pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
     for (;;) {
         i++;
         current_likelihood = tr->likelihood;
@@ -167,14 +163,9 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
 }
 
 double pll::get_likelihood() {
-    _check_model_ready();
     tr->start = tr->nodep[1];
-    pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+    pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
     return tr->likelihood;
-}
-
-int pll::get_number_of_threads() {
-    return attr.numberOfThreads;
 }
 
 int pll::get_number_of_partitions() {
@@ -207,7 +198,6 @@ std::vector<double> pll::get_alphas() {
 }
 
 double pll::get_alpha(int partition) {
-    _check_model_ready();
     _check_partitions_bounds(partition);
     return pllGetAlpha(partitions, partition);
 }
@@ -311,7 +301,7 @@ void pll::set_rates(std::vector<double> rates,
             std::cerr << "Rates vector is the wrong length. Should be " << num_rates << std::endl;
             throw std::exception();
         }
-        pllSetSubstitutionMatrix(&(rates[0]), num_rates, partition, partitions, tr);
+        pllSetSubstitutionMatrix(&(rates[0]), num_rates, partition, partitions, tr.get());
         set_optimisable_rates(partition, optimisable);
 //        double new_fracchange = get_frac_change();
 //        _update_q_matrix_and_brlens(partition, old_fracchange, new_fracchange);
@@ -319,9 +309,8 @@ void pll::set_rates(std::vector<double> rates,
 }
 
 void pll::set_alpha(double alpha, int partition, bool optimisable) {
-    _check_model_ready();
     _check_partitions_bounds(partition);
-    pllSetFixedAlpha(alpha, partition, partitions, tr);
+    pllSetFixedAlpha(alpha, partition, partitions, tr.get());
     set_optimisable_alpha(partition, optimisable);
 }
 
@@ -338,7 +327,7 @@ void pll::set_frequencies(std::vector<double> freqs, int partition, bool optimis
         throw std::exception();
     }
     set_optimisable_frequencies(partition, true); // frequencies only updated if optimisable flag is true
-    pllSetFixedBaseFrequencies(&(freqs[0]), num_states, partition, partitions, tr);
+    pllSetFixedBaseFrequencies(&(freqs[0]), num_states, partition, partitions, tr.get());
     set_optimisable_frequencies(partition, optimisable);
 }
 
@@ -370,10 +359,6 @@ bool pll::is_dna(int partition) {
 bool pll::is_protein(int partition) {
     _check_partitions_bounds(partition);
         return (partitions->partitionData[partition]->dataType == PLL_AA_DATA);
-}
-
-void pll::set_number_of_threads(int threads) {
-    attr.numberOfThreads = threads;
 }
 
 bool pll::is_optimisable_alpha(int partition) {
@@ -450,13 +435,15 @@ void pll::set_optimisable_frequencies(int partition, bool optimisable) {
 
 // PRIVATE METHODS
 
-void pll::_init_attr(int num_threads, long rns) {
+pllInstanceAttr pll::_init_attr(int num_threads, long rns) {
+    pllInstanceAttr attr;
     attr.rateHetModel = PLL_GAMMA;
     attr.fastScaling = PLL_TRUE;
     attr.saveMemory = PLL_TRUE;
     attr.useRecom = PLL_FALSE;
     attr.randomNumberSeed = rns;
     attr.numberOfThreads = num_threads;
+    return attr;
 }
 
 void pll::_init_instance() {
@@ -474,6 +461,7 @@ void pll::_init_alignment_file(std::string path) {
         std::cerr << "Couldn't parse the alignment at " << path << std::endl;
         throw std::exception();
     }
+    return alignment;
 }
 
 void pll::_init_partition_file(std::string path) {
@@ -779,3 +767,6 @@ bool pll::isTip(int number, int maxTips) {
     else
         return PLL_FALSE;
 }
+
+pll::pll(pll&& rhs) = default;
+pll& pll::operator=(pll&& rhs) = default;

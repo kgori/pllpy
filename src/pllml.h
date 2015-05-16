@@ -44,20 +44,35 @@ struct NewickDeleter {
 struct AlignmentDeleter {
     void operator()(pllAlignmentData *pAlignment) {
         pllAlignmentDataDestroy(pAlignment);
-    }
-};
-
-struct NewickDeleter {
-    void operator()(pllNewickTree *pNewick) {
-        pllNewickParseDestroy(&pNewick);
+        std::cout << "Alignment destroyed" << std::endl;
     }
 };
 
 struct QueueDeleter {
     void operator()(pllQueue *pQueue) {
         pllQueuePartitionsDestroy(&pQueue);
+        std::cout << "Queue destroyed" << std::endl;
     }
 };
+
+struct NewickDeleter {
+    void operator()(pllNewickTree *pNewick) {
+        pllNewickParseDestroy(&pNewick);
+        std::cout << "Newick destroyed" << std::endl;
+    }
+};
+
+struct InstanceDeleter {
+    void operator()(pllInstance *pInstance) {
+        pllDestroyInstance(pInstance);
+        std::cout << "Instance Destroyed" << std::endl;
+    }
+};
+
+typedef std::unique_ptr<pllAlignmentData, AlignmentDeleter> alignmentUPtr;
+typedef std::unique_ptr<pllNewickTree, NewickDeleter> newickUPtr;
+typedef std::unique_ptr<pllQueue, QueueDeleter> queueUPtr;
+typedef std::unique_ptr<pllInstance, InstanceDeleter> instanceUPtr;
 
 class pll {
 public:
@@ -65,6 +80,8 @@ public:
     pll(std::string alignment_file, std::string partitions, std::string tree, int num_threads = 1, long rns=0xDEADBEEF);
     pll(std::string alignment_file, std::string partitions, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
+    pll(pll&& rhs);
+    pll& operator=(pll&& rhs);
 
     // Run optimisations
     void                   optimise(bool rates, bool freqs, bool alphas, bool branches);

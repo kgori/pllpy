@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
 extern "C" {
@@ -32,27 +33,44 @@ using namespace std;
 struct AlignmentDeleter {
     void operator()(pllAlignmentData *pAlignment) {
         pllAlignmentDataDestroy(pAlignment);
-    }
-};
-
-struct NewickDeleter {
-    void operator()(pllNewickTree *pNewick) {
-        pllNewickParseDestroy(&pNewick);
+        std::cout << "Alignment destroyed" << std::endl;
     }
 };
 
 struct QueueDeleter {
     void operator()(pllQueue *pQueue) {
         pllQueuePartitionsDestroy(&pQueue);
+        std::cout << "Queue destroyed" << std::endl;
     }
 };
+
+struct NewickDeleter {
+    void operator()(pllNewickTree *pNewick) {
+        pllNewickParseDestroy(&pNewick);
+        std::cout << "Newick destroyed" << std::endl;
+    }
+};
+
+struct InstanceDeleter {
+    void operator()(pllInstance *pInstance) {
+        pllDestroyInstance(pInstance);
+        std::cout << "Instance Destroyed" << std::endl;
+    }
+};
+
+typedef std::unique_ptr<pllAlignmentData, AlignmentDeleter> alignmentUPtr;
+typedef std::unique_ptr<pllNewickTree, NewickDeleter> newickUPtr;
+typedef std::unique_ptr<pllQueue, QueueDeleter> queueUPtr;
+typedef std::unique_ptr<pllInstance, InstanceDeleter> instanceUPtr;
 
 class pll {
 public:
     // Make and destroy
-    pll(string alignment_file, string partitions, string tree, int num_threads = 1, long rns=0xDEADBEEF);
-    pll(string alignment_file, string partitions, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(string alignment_file, string part_desc, string tree, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(string alignment_file, string part_desc, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
+    pll(pll&& rhs);
+    pll& operator=(pll&& rhs);
 
     // Run optimisations
     void                   optimise(bool rates, bool freqs, bool alphas, bool branches);
@@ -77,7 +95,6 @@ public:
     vector<vector<double>> get_rates();
     vector<double>         get_rates_vector(int partition);
     int                    get_number_of_partitions();
-    int                    get_number_of_threads();
     string                 get_tree();
     vector<vector<double>> get_empirical_frequencies();
     double                 get_frac_change();
@@ -90,7 +107,6 @@ public:
     void                   set_optimisable_alpha(int partition, bool optimisable);
     void                   set_optimisable_frequencies(int partition, bool optimisable);
     void                   set_optimisable_rates(int partition, bool optimisable);
-    void                   set_number_of_threads(int threads);
     void                   set_tree(string nwk);
 
     // Partition management
@@ -107,15 +123,10 @@ public:
 
 private:
     // Model initialisation
-    void                   _init_attr(int num_threads, long rns);
-    void                   _init_instance();
-    void                   _init_alignment_file(string path);
-    void                   _init_partition_file(string path);
-    void                   _init_partition_string(string p_string);
-    void                   _init_tree_file(string path);
-    void                   _init_tree_string(string nwk);
-    void                   _init_tree_random();
-    void                   _init_model(bool parsimony);
+    pllInstanceAttr        _init_attr(int num_threads, long rns);
+    alignmentUPtr          _parse_alignment_file(string path);
+    queueUPtr              _parse_partitions(string partitions, alignmentUPtr&& alignment);
+    newickUPtr             _parse_tree(string path);
 
     // Helper functions
     void                   _evaluate_likelihood();
@@ -136,17 +147,8 @@ private:
     void                   _check_model_ready();
 
     // Data
-    unique_ptr<pllAlignmentData, AlignmentDeleter> alignment;
-    pllInstance      *tr         = nullptr;
-    partitionList    *partitions = nullptr;
-    pllInstanceAttr attr;
-    string alignment_file;
-    string tree_file;
-    string partition_file;
-    bool _instance_ready   = false;
-    bool _model_ready      = false;
-    bool _partitions_ready = false;
-    bool _tree_ready       = false;
+    instanceUPtr tr;
+    partitionList* partitions;
 };
 
 #endif /* PLL_WRAPPER_H_ */

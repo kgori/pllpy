@@ -13,7 +13,8 @@ int main(int argc, char const *argv[])
 
     auto inst = pll(FILE, PART, TREE, 1, 123);
     std::cout << inst.get_likelihood() << std::endl;
-//    inst.optimise(true, true, true, true);
+    auto ef = inst.get_empirical_frequencies();
+    inst.optimise(true, true, true, true);
     inst.optimise_tree_search(true);
     std::cout << inst.get_likelihood() << std::endl;
     std::cout << inst.get_tree() << std::endl;

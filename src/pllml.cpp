@@ -99,9 +99,6 @@ void pll::optimise_branch_lengths(int num_iter) {
 void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
     if (!rates && !freqs && !alphas && !branches) return;
     int i = 0;
-    linkageList *alphaList = partitions->alphaList,
-                *rateList  = partitions->rateList,
-                *freqList  = partitions->freqList;
     double current_likelihood;
     double modelEpsilon = 0.0001; // same as in modOpt
     tr->start = tr->nodep[1];
@@ -282,6 +279,7 @@ std::vector<std::vector<double> > pll::get_empirical_frequencies() {
         }
         vec_2d.push_back(row_vec);
     }
+    std::free(ef);
     return vec_2d;
 }
 

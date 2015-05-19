@@ -92,9 +92,6 @@ void pll::optimise_branch_lengths(int num_iter) {
 void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
     if (!rates && !freqs && !alphas && !branches) return;
     int i = 0;
-    linkageList *alphaList = partitions->alphaList,
-                *rateList  = partitions->rateList,
-                *freqList  = partitions->freqList;
     double current_likelihood;
     double modelEpsilon = 0.0001; // same as in modOpt
     tr->start = tr->nodep[1];
@@ -105,7 +102,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
         cerr << "  iter " << i << " current lnl = " << current_likelihood << endl;
 
         if (rates) {
-            pllOptRatesGeneric(tr.get(), partitions, modelEpsilon, rateList);
+            pllOptRatesGeneric(tr.get(), partitions, modelEpsilon, partitions->rateList);
             pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
             cerr << "    rates:  " << tr->likelihood << endl;
         }
@@ -117,7 +114,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
         }
 
         if (freqs) {
-            pllOptBaseFreqs(tr.get(), partitions, modelEpsilon, freqList);
+            pllOptBaseFreqs(tr.get(), partitions, modelEpsilon, partitions->freqList);
             pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
             cerr << "    freqs:  " << tr->likelihood << endl;
         }
@@ -129,7 +126,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
         }
 
         if (alphas) {
-            pllOptAlphasGeneric (tr.get(), partitions, modelEpsilon, alphaList);
+            pllOptAlphasGeneric (tr.get(), partitions, modelEpsilon, partitions->alphaList);
             pllEvaluateLikelihood(tr.get(), partitions, tr->start, PLL_TRUE, PLL_FALSE);
             cerr << "    alphas: " << tr->likelihood << endl;
         }
@@ -258,6 +255,7 @@ vector<vector<double> > pll::get_empirical_frequencies() {
         }
         vec_2d.push_back(row_vec);
     }
+    std::free(ef);
     return vec_2d;
 }
 

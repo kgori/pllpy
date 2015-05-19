@@ -255,7 +255,7 @@ vector<vector<double> > pll::get_empirical_frequencies() {
         }
         vec_2d.push_back(row_vec);
     }
-    std::free(ef);
+    pllEmpiricalFrequenciesDestroy (&ef, partitions->numberOfPartitions);
     return vec_2d;
 }
 

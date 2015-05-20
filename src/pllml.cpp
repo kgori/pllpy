@@ -766,5 +766,3 @@ bool pll::isTip(int number, int maxTips) {
         return PLL_FALSE;
 }
 
-pll::pll(pll&& rhs) = default;
-pll& pll::operator=(pll&& rhs) = default;

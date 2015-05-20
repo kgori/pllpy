@@ -51,13 +51,13 @@ pll::pll(string alignment_file, string part_desc, bool parsimony, int num_thread
     pllAlignmentRemoveDups(alignment.get(), partitions);
     pllTreeInitTopologyRandom(tr.get(), alignment->sequenceCount, alignment->sequenceLabels);
     pllLoadAlignment(tr.get(), alignment.get(), partitions);
-    pllComputeRandomizedStepwiseAdditionParsimonyTree(tr.get(), partitions);
+    if (parsimony) pllComputeRandomizedStepwiseAdditionParsimonyTree(tr.get(), partitions);
     pllInitModel(tr.get(), partitions);
 }
 
 pll::~pll() {
     pllPartitionsDestroy(tr.get(), &partitions);
-    std::cout << "Destroyed partitions list" << std::endl;
+    //std::cout << "Destroyed partitions list" << std::endl;
 }
 
 void pll::optimise_tree_search(bool estimate_model) {
@@ -424,7 +424,7 @@ alignmentUPtr pll::_parse_alignment_file(string path) {
     alignmentUPtr alignment;
     alignment = alignmentUPtr(pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str()));
     if (!alignment) {
-        cout << "Trying to parse as fasta" << endl;
+        //cout << "Trying to parse as fasta" << endl;
         alignment = alignmentUPtr(pllParseAlignmentFile(PLL_FORMAT_FASTA, path.c_str()));
     }
     if (!alignment) {
@@ -658,5 +658,3 @@ bool pll::isTip(int number, int maxTips) {
         return PLL_FALSE;
 }
 
-pll::pll(pll&& rhs) = default;
-pll& pll::operator=(pll&& rhs) = default;

@@ -33,28 +33,28 @@ using namespace std;
 struct AlignmentDeleter {
     void operator()(pllAlignmentData *pAlignment) {
         pllAlignmentDataDestroy(pAlignment);
-        std::cout << "Alignment destroyed" << std::endl;
+        //std::cout << "Alignment destroyed" << std::endl;
     }
 };
 
 struct QueueDeleter {
     void operator()(pllQueue *pQueue) {
         pllQueuePartitionsDestroy(&pQueue);
-        std::cout << "Queue destroyed" << std::endl;
+        //std::cout << "Queue destroyed" << std::endl;
     }
 };
 
 struct NewickDeleter {
     void operator()(pllNewickTree *pNewick) {
         pllNewickParseDestroy(&pNewick);
-        std::cout << "Newick destroyed" << std::endl;
+        //std::cout << "Newick destroyed" << std::endl;
     }
 };
 
 struct InstanceDeleter {
     void operator()(pllInstance *pInstance) {
         pllDestroyInstance(pInstance);
-        std::cout << "Instance Destroyed" << std::endl;
+        //std::cout << "Instance Destroyed" << std::endl;
     }
 };
 
@@ -69,8 +69,8 @@ public:
     pll(string alignment_file, string part_desc, string tree, int num_threads = 1, long rns=0xDEADBEEF);
     pll(string alignment_file, string part_desc, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
-    pll(pll&& rhs);
-    pll& operator=(pll&& rhs);
+    pll(pll&& rhs) = delete;               // No copy       - need to deep copy all pointed-at data
+    pll& operator=(pll&& rhs) = delete;    // No assignment - (seems like too much work)
 
     // Run optimisations
     void                   optimise(bool rates, bool freqs, bool alphas, bool branches);

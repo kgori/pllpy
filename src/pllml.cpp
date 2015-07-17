@@ -72,11 +72,11 @@ void pll::optimise_model() {
 }
 
 void pll::optimise_rates() {
-    optimise(false, true, false, false);
+    optimise(true, false, false, false);
 }
 
 void pll::optimise_freqs() {
-    optimise(true, false, false, false);
+    optimise(false, true, false, false);
 }
 
 void pll::optimise_alphas() {

@@ -237,19 +237,12 @@ cdef class pll:
         assert isinstance(freqs, (int, long)), 'arg freqs wrong type'
         assert isinstance(alphas, (int, long)), 'arg alphas wrong type'
         assert isinstance(branches, (int, long)), 'arg branches wrong type'
-
-
-
-
         self.inst.get().optimise((<bool>rates), (<bool>freqs), (<bool>alphas), (<bool>branches))
 
     def set_alpha(self, double alpha ,  partition ,  optimisable ):
         assert isinstance(alpha, float), 'arg alpha wrong type'
         assert isinstance(partition, (int, long)), 'arg partition wrong type'
         assert isinstance(optimisable, (int, long)), 'arg optimisable wrong type'
-
-
-
         self.inst.get().set_alpha((<double>alpha), (<int>partition), (<bool>optimisable))
 
     def get_empirical_frequencies(self):
@@ -258,6 +251,16 @@ cdef class pll:
         return py_result
 
     def optimise_tree_search(self,  estimate_model ):
+        """
+        optimise_tree_search(self,  estimate_model )
+        ============================================
+
+        Optimise the tree topology using the RAxML search algorithm.
+
+        estimate_model, bool =  Choose whether to optimise model parameters
+                                as well as tree topology
+
+        """
         assert isinstance(estimate_model, (int, long)), 'arg estimate_model wrong type'
 
         self.inst.get().optimise_tree_search((<bool>estimate_model))
@@ -288,3 +291,109 @@ cdef class pll:
         _r = self.inst.get().get_frequencies()
         cdef list py_result = _r
         return py_result
+
+
+class PLLException(Exception):
+    pass
+
+
+class helpers(object):
+    @staticmethod
+    def create_instance(alignment, partitions, tree, threads=1, rns=int("0xCA55E77E", 16)):
+        """
+        create_instance(alignment, partitions, tree, threads=1, rns=int("0xCA55E77E", 16))
+
+        alignment  - string = filename of fasta or phylip format alignment file
+        partitions - string = filename of RAxML format partitions file,
+                              or that file's contents as a string
+        tree       - string = filename of newick format tree,
+                              or newick format tree as a string,
+                              or "random" to make a random tree,
+                              or "parsimony" to make a maximum parsimony tree
+        threads    - int    = number of threads to use if pllpy was built against a 
+                              multithreaded pll library
+        rns        - int    = random number seed
+        """
+        try:
+            with open(alignment):
+                pass
+        except IOError as exc:
+            raise exc
+
+        if tree in ['random', 'parsimony']:
+            if tree == 'random':
+                instance = pll(alignment, partitions, False, threads, rns)
+            else:
+                instance = pll(alignment, partitions, True, threads, rns)
+        else:
+            instance = pll(alignment, partitions, tree, threads, rns)
+        return instance
+
+
+    @staticmethod
+    def set_partition_model_parameters(instance, partition, alpha, freqs, rates, empirical_freqs, equal_freqs):
+        """
+        Sets parameter values for a specific partition.
+
+        :param instance: PLL instance being modified
+        :param partition: Number of the partition having its parameters set
+        :param alpha: Alpha parameter of the 4-category discrete gamma rates distribution
+        :param freqs: Equilibrium frequencies of states (4 for DNA, 20 for aa)
+        :param rates: Relative substitution rate parameters - values of the upper triangle of 4x4 matrix,
+                      so 6 numbers in all. The sixth value must be 1.0. Assume matrix is in "acgt" order.
+                      Only applies to DNA data; protein models all use empirical rates.
+        :param empirical_freqs: Use empirical estimates for state frequencies. Overwrites 'freqs'.
+        :param equal_freqs: Set all state frequencies to 1/num_states
+        :return: void
+        """
+        if empirical_freqs:
+            freqs = instance.get_empirical_frequencies()[partition]
+        elif equal_freqs:
+            if instance.is_dna(partition):
+                freqs = [0.25] * 4
+            else:
+                freqs = [0.05] * 20
+        if alpha is not None:
+            instance.set_alpha(alpha, partition, True)
+        if freqs is not None:
+            instance.set_frequencies(freqs, partition, True)
+        if rates is not None:
+            instance.set_rates(rates, partition, True)
+
+
+    @classmethod
+    def set_params_from_dict(cls, instance, model):
+        """
+        Sets parameters of pll instance according to dict
+        :param instance: pll instance
+        :param model: dict describing pll model parameters
+        :return:
+        """
+        p_info = model['partitions']
+        for i in range(instance.get_number_of_partitions()):
+            alpha = p_info[i].get('alpha')
+            freqs = p_info[i].get('frequencies')
+            rates = p_info[i].get('rates')
+            cls.set_partition_model_parameters(instance, i, alpha, freqs, rates, False, False)
+        return instance
+
+
+    @staticmethod
+    def pll_to_dict(instance):
+        """
+        Summarises parameter values from PLL instance and writes their values
+        to disk in a json format file
+
+        :param instance: PLL instance being summarised
+        :param json_file: Either a filepath or a file-like stream (e.g. sys.stdout)
+        :return: void
+        """
+        model = {'ml_tree': instance.get_tree(), 'likelihood': instance.get_likelihood(), 'partitions': {}}
+        for i in range(instance.get_number_of_partitions()):
+            data = {'alpha': instance.get_alpha(i), 'frequencies': instance.get_frequencies_vector(i)}
+            if instance.is_dna(i):
+                data['rates'] = instance.get_rates_vector(i)
+            data['model'] = instance.get_model_name(i)
+            data['name'] = instance.get_partition_name(i)
+            model['partitions'][i] = data
+        return model

@@ -28,7 +28,6 @@ extern "C" {
 #include <pll/pll.h>
 }
 
-using namespace std;
 
 struct AlignmentDeleter {
     void operator()(pllAlignmentData *pAlignment) {
@@ -45,8 +44,8 @@ struct NewickDeleter {
 class pll {
 public:
     // Make and destroy
-    pll(string alignment_file, string partitions, string tree, int num_threads = 1, long rns=0xDEADBEEF);
-    pll(string alignment_file, string partitions, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(std::string alignment_file, std::string partitions, std::string tree, int num_threads = 1, long rns=0xDEADBEEF);
+    pll(std::string alignment_file, std::string partitions, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
 
     // Run optimisations
@@ -60,38 +59,38 @@ public:
 
     // Getters
     double                 get_likelihood();
-    vector<string>         get_partition_names();
-    string                 get_partition_name(int partition);
-    vector<string>         get_model_names();
-    string                 get_model_name(int partition);
+    std::vector<std::string>         get_partition_names();
+    std::string                 get_partition_name(int partition);
+    std::vector<std::string>         get_model_names();
+    std::string                 get_model_name(int partition);
     double                 get_epsilon();
-    vector<double>         get_alphas();
+    std::vector<double>         get_alphas();
     double                 get_alpha(int partition);
-    vector<vector<double>> get_frequencies();
-    vector<double>         get_frequencies_vector(int partition);
-    vector<vector<double>> get_rates();
-    vector<double>         get_rates_vector(int partition);
+    std::vector<std::vector<double>> get_frequencies();
+    std::vector<double>         get_frequencies_vector(int partition);
+    std::vector<std::vector<double>> get_rates();
+    std::vector<double>         get_rates_vector(int partition);
     int                    get_number_of_partitions();
     int                    get_number_of_threads();
-    string                 get_tree();
-    vector<vector<double>> get_empirical_frequencies();
+    std::string                 get_tree();
+    std::vector<std::vector<double>> get_empirical_frequencies();
     double                 get_frac_change();
 
     // Setters
     void                   set_epsilon(double epsilon);
     void                   set_alpha(double alpha, int partition, bool optimisable);
-    void                   set_frequencies(vector<double> freqs, int partition, bool optimisable);
-    void                   set_rates(vector<double> rates, int partition, bool optimisable);
+    void                   set_frequencies(std::vector<double> freqs, int partition, bool optimisable);
+    void                   set_rates(std::vector<double> rates, int partition, bool optimisable);
     void                   set_optimisable_alpha(int partition, bool optimisable);
     void                   set_optimisable_frequencies(int partition, bool optimisable);
     void                   set_optimisable_rates(int partition, bool optimisable);
     void                   set_number_of_threads(int threads);
-    void                   set_tree(string nwk);
+    void                   set_tree(std::string nwk);
 
     // Partition management
-    void                   link_alpha_parameters(string linkage);
-    void                   link_frequencies(string linkage);
-    void                   link_rates(string linkage);
+    void                   link_alpha_parameters(std::string linkage);
+    void                   link_frequencies(std::string linkage);
+    void                   link_rates(std::string linkage);
 
     // Check settings
     bool                   is_dna(int partition);
@@ -104,21 +103,21 @@ private:
     // Model initialisation
     void                   _init_attr(int num_threads, long rns);
     void                   _init_instance();
-    void                   _init_alignment_file(string path);
-    void                   _init_partition_file(string path);
-    void                   _init_partition_string(string p_string);
-    void                   _init_tree_file(string path);
-    void                   _init_tree_string(string nwk);
+    void                   _init_alignment_file(std::string path);
+    void                   _init_partition_file(std::string path);
+    void                   _init_partition_string(std::string p_string);
+    void                   _init_tree_file(std::string path);
+    void                   _init_tree_string(std::string nwk);
     void                   _init_tree_random();
     void                   _init_model(bool parsimony);
 
     // Helper functions
     void                   _evaluate_likelihood();
-    double                 _vector_sum(vector<double>);
+    double                 _vector_sum(std::vector<double>);
     bool                   _approx_eq(double a, double b);
-    bool                   _is_file(string filename);
-    bool                   _is_tree_string(string tree_string);
-    string                 _model_name(int model_num);
+    bool                   _is_file(std::string filename);
+    bool                   _is_tree_string(std::string tree_string);
+    std::string                 _model_name(int model_num);
     void                   _destroy_model();
     void                   _update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange);
     void                   _update_all_brlens(double old_fracchange, double new_fracchange);
@@ -131,14 +130,14 @@ private:
     void                   _check_model_ready();
 
     // Data
-    unique_ptr<pllAlignmentData, AlignmentDeleter> alignment;
+    std::unique_ptr<pllAlignmentData, AlignmentDeleter> alignment;
     pllInstance      *tr         = nullptr;
-    unique_ptr<pllNewickTree, NewickDeleter> newick;
+    std::unique_ptr<pllNewickTree, NewickDeleter> newick;
     partitionList    *partitions = nullptr;
     pllInstanceAttr attr;
-    string alignment_file;
-    string tree_file;
-    string partition_file;
+    std::string alignment_file;
+    std::string tree_file;
+    std::string partition_file;
     bool _instance_ready   = false;
     bool _model_ready      = false;
     bool _alignment_ready  = false;

@@ -27,7 +27,7 @@ extern "C" {
 
 // PUBLIC METHODS
 
-pll::pll(string alignment_file, string partitions, string tree, int num_threads, long rns) {
+pll::pll(std::string alignment_file, std::string partitions, std::string tree, int num_threads, long rns) {
     _init_attr(num_threads, rns);
     _init_instance();
     _init_alignment_file(alignment_file);
@@ -44,13 +44,13 @@ pll::pll(string alignment_file, string partitions, string tree, int num_threads,
         _init_tree_string(tree);
     }
     else {
-        cerr << "Didn't understand tree: " << tree << endl;
-        throw exception();
+        std::cerr << "Didn't understand tree: " << tree << std::endl;
+        throw std::exception();
     }
     _init_model(false);
 }
 
-pll::pll(string alignment_file, string partitions, bool parsimony, int num_threads, long rns) {
+pll::pll(std::string alignment_file, std::string partitions, bool parsimony, int num_threads, long rns) {
     _init_attr(num_threads, rns);
     _init_instance();
     _init_alignment_file(alignment_file);
@@ -113,54 +113,54 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches) {
     for (;;) {
         i++;
         current_likelihood = tr->likelihood;
-        cerr << "  iter " << i << " current lnl = " << current_likelihood << endl;
+        std::cerr << "  iter " << i << " current lnl = " << current_likelihood << std::endl;
 
         if (rates) {
             pllOptRatesGeneric(tr, partitions, modelEpsilon, rateList);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            cerr << "    rates:  " << tr->likelihood << endl;
+            std::cerr << "    rates:  " << tr->likelihood << std::endl;
         }
 
         if (branches) {
             pllOptimizeBranchLengths(tr, partitions, 3);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            cerr << "    brlen1: " << tr->likelihood << endl;
+            std::cerr << "    brlen1: " << tr->likelihood << std::endl;
         }
 
         if (freqs) {
             pllOptBaseFreqs(tr, partitions, modelEpsilon, freqList);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            cerr << "    freqs:  " << tr->likelihood << endl;
+            std::cerr << "    freqs:  " << tr->likelihood << std::endl;
         }
 
         if (branches) {
             pllOptimizeBranchLengths(tr, partitions, 3);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            cerr << "    brlen2: " << tr->likelihood << endl;
+            std::cerr << "    brlen2: " << tr->likelihood << std::endl;
         }
 
         if (alphas) {
             pllOptAlphasGeneric (tr, partitions, modelEpsilon, alphaList);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            cerr << "    alphas: " << tr->likelihood << endl;
+            std::cerr << "    alphas: " << tr->likelihood << std::endl;
         }
 
         if (branches) {
             pllOptimizeBranchLengths(tr, partitions, 3);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            cerr << "    brlen3: " << tr->likelihood << endl;
+            std::cerr << "    brlen3: " << tr->likelihood << std::endl;
         }
 
         if(!((tr->likelihood - current_likelihood) > 0)) {
-            cerr << tr->likelihood << " " << current_likelihood << endl;
-            cerr << "Difference: " << tr->likelihood - current_likelihood << endl;
-            throw exception();
+            std::cerr << tr->likelihood << " " << current_likelihood << std::endl;
+            std::cerr << "Difference: " << tr->likelihood - current_likelihood << std::endl;
+            throw std::exception();
         }
 
         if (!(fabs(current_likelihood - tr->likelihood) > tr->likelihoodEpsilon)){
-            cerr << "current lnl = " << current_likelihood << endl
-                 << "tr lnl      = " << tr->likelihood << endl
-                 << "END" << endl;
+            std::cerr << "current lnl = " << current_likelihood << std::endl
+                 << "tr lnl      = " << tr->likelihood << std::endl
+                 << "END" << std::endl;
             break;
         }
     }
@@ -181,24 +181,24 @@ int pll::get_number_of_partitions() {
     return partitions->numberOfPartitions;
 }
 
-vector<string> pll::get_partition_names() {
+std::vector<std::string> pll::get_partition_names() {
     _check_model_ready();
-    vector<string> names;
+    std::vector<std::string> names;
     for (int i = 0; i < get_number_of_partitions(); ++i) {
         names.push_back(get_partition_name(i));
     }
     return names;
 }
 
-string pll::get_partition_name(int partition) {
+std::string pll::get_partition_name(int partition) {
     _check_model_ready();
     _check_partitions_bounds(partition);
-    return string(partitions->partitionData[partition]->partitionName);
+    return std::string(partitions->partitionData[partition]->partitionName);
 }
 
-vector<double> pll::get_alphas() {
+std::vector<double> pll::get_alphas() {
     _check_model_ready();
-    vector<double> alphas;
+    std::vector<double> alphas;
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
         alphas.push_back(get_alpha(i));
@@ -212,9 +212,9 @@ double pll::get_alpha(int partition) {
     return pllGetAlpha(partitions, partition);
 }
 
-vector<vector<double>> pll::get_frequencies() {
+std::vector<std::vector<double>> pll::get_frequencies() {
     _check_model_ready();
-    vector<vector<double>> freqs;
+    std::vector<std::vector<double>> freqs;
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
         freqs.push_back(get_frequencies_vector(i));
@@ -222,12 +222,12 @@ vector<vector<double>> pll::get_frequencies() {
     return freqs;
 }
 
-vector<double> pll::get_frequencies_vector(int partition) {
+std::vector<double> pll::get_frequencies_vector(int partition) {
     _check_model_ready();
     _check_partitions_bounds(partition);
-    vector<double> freqs_vec;
+    std::vector<double> freqs_vec;
     if (!_model_ready) {
-        cerr << "Model isn't finalised" << endl;
+        std::cerr << "Model isn't finalised" << std::endl;
         return freqs_vec;
     }
     int num_states = partitions->partitionData[partition]->states;
@@ -237,9 +237,9 @@ vector<double> pll::get_frequencies_vector(int partition) {
     return freqs_vec;
 }
 
-vector<vector<double>> pll::get_rates() {
+std::vector<std::vector<double>> pll::get_rates() {
     _check_model_ready();
-    vector<vector<double>> rates;
+    std::vector<std::vector<double>> rates;
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
         rates.push_back(get_rates_vector(i));
@@ -247,12 +247,12 @@ vector<vector<double>> pll::get_rates() {
     return rates;
 }
 
-vector<double> pll::get_rates_vector(int partition) {
+std::vector<double> pll::get_rates_vector(int partition) {
     _check_model_ready();
     _check_partitions_bounds(partition);
-    vector<double> rates_vec;
+    std::vector<double> rates_vec;
     if (!_model_ready) {
-        cerr << "Model isn't finalised" << endl;
+        std::cerr << "Model isn't finalised" << std::endl;
         return rates_vec;
     }
     int num_states = partitions->partitionData[partition]->states;
@@ -267,25 +267,25 @@ double pll::get_epsilon() {
     return tr->likelihoodEpsilon;
 }
 
-string pll::get_tree() {
+std::string pll::get_tree() {
     _check_model_ready();
     pllTreeToNewick(tr->tree_string, tr, partitions,
                     tr->start->back, PLL_TRUE, PLL_TRUE,
                     PLL_FALSE, PLL_FALSE, PLL_FALSE,
                     0, PLL_FALSE, PLL_FALSE);
-    string tree(tr->tree_string);
+    std::string tree(tr->tree_string);
     tree.erase(std::remove(tree.begin(), tree.end(), '\n'), tree.end());
     return tree;
 }
 
-vector<vector<double> > pll::get_empirical_frequencies() {
+std::vector<std::vector<double> > pll::get_empirical_frequencies() {
     _check_model_ready();
     double ** ef;
-    vector<vector<double>> vec_2d;
+    std::vector<std::vector<double>> vec_2d;
     ef = pllBaseFrequenciesInstance(tr, partitions);
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
-        vector<double> row_vec;
+        std::vector<double> row_vec;
         size_t ns = partitions->partitionData[i]->states;
         for (size_t j = 0; j < ns; ++j) {
             row_vec.push_back(ef[i][j]);
@@ -299,7 +299,7 @@ void pll::set_epsilon(double epsilon) {
     tr->likelihoodEpsilon = epsilon;
 }
 
-void pll::set_rates(vector<double> rates,
+void pll::set_rates(std::vector<double> rates,
         int partition, bool optimisable) {
     _check_model_ready();
     double old_fracchange = get_frac_change();
@@ -308,8 +308,8 @@ void pll::set_rates(vector<double> rates,
         int num_states = partitions->partitionData[partition]->states;
         size_t num_rates = (num_states * (num_states - 1)) / 2;
         if (rates.size() != num_rates) {
-            cerr << "Rates vector is the wrong length. Should be " << num_rates << endl;
-            throw exception();
+            std::cerr << "Rates vector is the wrong length. Should be " << num_rates << std::endl;
+            throw std::exception();
         }
         pllSetSubstitutionMatrix(&(rates[0]), num_rates, partition, partitions, tr);
         set_optimisable_rates(partition, optimisable);
@@ -325,39 +325,39 @@ void pll::set_alpha(double alpha, int partition, bool optimisable) {
     set_optimisable_alpha(partition, optimisable);
 }
 
-void pll::set_frequencies(vector<double> freqs, int partition, bool optimisable) {
+void pll::set_frequencies(std::vector<double> freqs, int partition, bool optimisable) {
     _check_model_ready();
     _check_partitions_bounds(partition);
     if (!_approx_eq(_vector_sum(freqs), 1)) {
-        cerr << "Not setting frequencies: Frequencies do not sum to 1" << endl;
-        throw exception();
+        std::cerr << "Not setting frequencies: Frequencies do not sum to 1" << std::endl;
+        throw std::exception();
     }
     size_t num_states = partitions->partitionData[partition]->states;
     if (freqs.size() != num_states) {
-        cerr << "Frequencies vector is the wrong length. Should be " << num_states << endl;
-        throw exception();
+        std::cerr << "Frequencies vector is the wrong length. Should be " << num_states << std::endl;
+        throw std::exception();
     }
     set_optimisable_frequencies(partition, true); // frequencies only updated if optimisable flag is true
     pllSetFixedBaseFrequencies(&(freqs[0]), num_states, partition, partitions, tr);
     set_optimisable_frequencies(partition, optimisable);
 }
 
-void pll::set_tree(string nwk) {
+void pll::set_tree(std::string nwk) {
     _init_tree_string(nwk);
     _evaluate_likelihood();
 }
 
-void pll::link_alpha_parameters(string linkage) {
+void pll::link_alpha_parameters(std::string linkage) {
     _check_model_ready();
     pllLinkAlphaParameters(const_cast<char*>(linkage.c_str()), partitions);
 }
 
-void pll::link_frequencies(string linkage) {
+void pll::link_frequencies(std::string linkage) {
     _check_model_ready();
     pllLinkFrequencies(const_cast<char*>(linkage.c_str()), partitions);
 }
 
-void pll::link_rates(string linkage) {
+void pll::link_rates(std::string linkage) {
     _check_model_ready();
     pllLinkRates(const_cast<char*>(linkage.c_str()), partitions);
 }
@@ -391,8 +391,8 @@ bool pll::is_optimisable_rates(int partition) {
     return (partitions->partitionData[partition]->optimizeSubstitutionRates == PLL_TRUE);
 }
 
-vector<string> pll::get_model_names() {
-    vector<string> names;
+std::vector<std::string> pll::get_model_names() {
+    std::vector<std::string> names;
     size_t np = get_number_of_partitions();
     for (size_t i = 0; i < np; ++i) {
         names.push_back(get_model_name(i));
@@ -400,9 +400,9 @@ vector<string> pll::get_model_names() {
     return names;
 }
 
-string pll::get_model_name(int partition) {
+std::string pll::get_model_name(int partition) {
     _check_partitions_bounds(partition);
-    string name;
+    std::string name;
     if (is_dna(partition)) {
         name = "GTR";
     }
@@ -416,8 +416,8 @@ string pll::get_model_name(int partition) {
 
 void pll::set_optimisable_rates(int partition, bool optimisable) {
     if (is_protein(partition)) {
-        cerr << "Optimising rates not implemented for protein models" << endl;
-        throw exception();
+        std::cerr << "Optimising rates not implemented for protein models" << std::endl;
+        throw std::exception();
     }
     _check_partitions_bounds(partition);
     int pll_bool = optimisable ? PLL_TRUE : PLL_FALSE;
@@ -436,9 +436,9 @@ void pll::set_optimisable_alpha(int partition, bool optimisable) {
     _evaluate_likelihood();
 }
 
-double pll::get_frac_change() {
-    return tr->fracchange;
-}
+//double pll::get_frac_change() {
+//    return tr->fracchange;
+//}
 
 void pll::set_optimisable_frequencies(int partition, bool optimisable) {
     _check_partitions_bounds(partition);
@@ -464,29 +464,29 @@ void pll::_init_instance() {
     _instance_ready = true;
 }
 
-void pll::_init_alignment_file(string path) {
+void pll::_init_alignment_file(std::string path) {
     if (!_is_file(path)) {
-        cerr << "Couldn't find the alignment file " << path << endl;
-        throw exception();
+        std::cerr << "Couldn't find the alignment file " << path << std::endl;
+        throw std::exception();
     }
-    alignment = unique_ptr<pllAlignmentData, AlignmentDeleter>(pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str()));
+    alignment = std::unique_ptr<pllAlignmentData, AlignmentDeleter>(pllParseAlignmentFile(PLL_FORMAT_PHYLIP, path.c_str()));
     if (!alignment) {
-        cerr << "Couldn't parse the alignment at " << path << endl;
-        throw exception();
+        std::cerr << "Couldn't parse the alignment at " << path << std::endl;
+        throw std::exception();
     }
     _alignment_ready = true;
 }
 
-void pll::_init_partition_file(string path) {
+void pll::_init_partition_file(std::string path) {
     if (!_alignment_ready) {
-        cerr << "Must load alignment before partitions" << endl;
-        throw exception();
+        std::cerr << "Must load alignment before partitions" << std::endl;
+        throw std::exception();
     }
     pllQueue * partitionInfo;
     partitionInfo = pllPartitionParse(path.c_str());
     if (!pllPartitionsValidate(partitionInfo, alignment.get())) {
-        cerr << "partitions parse error" << endl;
-        throw exception();
+        std::cerr << "partitions parse error" << std::endl;
+        throw std::exception();
     }
     partitions = pllPartitionsCommit(partitionInfo, alignment.get());
     pllAlignmentRemoveDups(alignment.get(), partitions);
@@ -494,16 +494,16 @@ void pll::_init_partition_file(string path) {
     _partitions_ready = true;
 }
 
-void pll::_init_partition_string(string p_string) {
+void pll::_init_partition_string(std::string p_string) {
     if (!_alignment_ready) {
-        cerr << "Must load alignment before partitions" << endl;
-        throw exception();
+        std::cerr << "Must load alignment before partitions" << std::endl;
+        throw std::exception();
     }
     pllQueue * partitionInfo;
     partitionInfo = pllPartitionParseString(p_string.c_str());
     if (!pllPartitionsValidate(partitionInfo, alignment.get())) {
-        cerr << "partitions parse error" << endl;
-        throw exception();
+        std::cerr << "partitions parse error" << std::endl;
+        throw std::exception();
     }
     partitions = pllPartitionsCommit(partitionInfo, alignment.get());
     pllAlignmentRemoveDups(alignment.get(), partitions);
@@ -511,36 +511,36 @@ void pll::_init_partition_string(string p_string) {
     _partitions_ready = true;
 }
 
-void pll::_init_tree_file(string path) {
+void pll::_init_tree_file(std::string path) {
     if (!_alignment_ready || !_partitions_ready) {
-        cerr << "Must load alignment and partitions before tree" << endl;
-        throw exception();
+        std::cerr << "Must load alignment and partitions before tree" << std::endl;
+        throw std::exception();
     }
-    newick = unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseFile(path.c_str()));
+    newick = std::unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseFile(path.c_str()));
     if (!newick) {
-        cerr << "tree parse error" << endl;
-        throw exception();
+        std::cerr << "tree parse error" << std::endl;
+        throw std::exception();
     }
     if (!pllValidateNewick(newick.get())) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
-        cerr << "invalid tree" << endl;
-        throw exception();
+        std::cerr << "invalid tree" << std::endl;
+        throw std::exception();
     }
     pllTreeInitTopologyNewick(tr, newick.get(), PLL_FALSE);
     newick.reset();
     _tree_ready = true;
 }
 
-void pll::_init_tree_string(string nwk) {
+void pll::_init_tree_string(std::string nwk) {
     if (!_alignment_ready || !_partitions_ready) {
-        cerr << "Must load alignment and partitions before tree" << endl;
-        throw exception();
+        std::cerr << "Must load alignment and partitions before tree" << std::endl;
+        throw std::exception();
     }
-    newick = unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseString(nwk.c_str()));
+    newick = std::unique_ptr<pllNewickTree, NewickDeleter>(pllNewickParseString(nwk.c_str()));
     if (!newick) {
-        throw exception();
+        throw std::exception();
     }
     if (!pllValidateNewick(newick.get())) /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */ {
-        throw exception();
+        throw std::exception();
     }
     pllTreeInitTopologyNewick(tr, newick.get(), PLL_FALSE);
     newick.reset();
@@ -549,8 +549,8 @@ void pll::_init_tree_string(string nwk) {
 
 void pll::_init_tree_random() {
     if (!_alignment_ready || !_partitions_ready) {
-        cerr << "Must load alignment and partitions before tree" << endl;
-        throw exception();
+        std::cerr << "Must load alignment and partitions before tree" << std::endl;
+        throw std::exception();
     }
     pllTreeInitTopologyRandom(tr, alignment->sequenceCount, alignment->sequenceLabels);
     _tree_ready = true;
@@ -558,12 +558,12 @@ void pll::_init_tree_random() {
 
 void pll::_init_model(bool parsimony_tree) {
     if (!_instance_ready || !_alignment_ready || !_partitions_ready || !_tree_ready) {
-        cerr << "Must load alignment, tree and partitions before initialising the model" << endl;
-        throw exception();
+        std::cerr << "Must load alignment, tree and partitions before initialising the model" << std::endl;
+        throw std::exception();
     }
     if (!pllLoadAlignment(tr, alignment.get(), partitions)) {
-        cerr << "Model finalisation error" << endl;
-        throw exception();
+        std::cerr << "Model finalisation error" << std::endl;
+        throw std::exception();
     }
     if (parsimony_tree) {
         pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
@@ -578,8 +578,8 @@ void pll::_destroy_model() {
     if (tr) pllDestroyInstance(tr);
 }
 
-bool pll::_is_file(string filename) {
-    ifstream fl(filename.c_str());
+bool pll::_is_file(std::string filename) {
+    std::ifstream fl(filename.c_str());
     bool result = true;
     if (!fl) {
         result = false;
@@ -588,20 +588,20 @@ bool pll::_is_file(string filename) {
     return result;
 }
 
-bool pll::_is_tree_string(string tree_string) {
+bool pll::_is_tree_string(std::string tree_string) {
     size_t l = tree_string.length();
     return (tree_string[0]=='(' && tree_string[l-1]==';');
 }
 
 void pll::_evaluate_likelihood() {
     if (!_model_ready) {
-        cerr << "Model isn't finalised" << endl;
+        std::cerr << "Model isn't finalised" << std::endl;
         return;
     }
     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 }
 
-double pll::_vector_sum(vector<double> vec) {
+double pll::_vector_sum(std::vector<double> vec) {
     double s = 0;
     for (size_t i = 0; i < vec.size(); ++i) {
         s += vec[i];
@@ -618,20 +618,20 @@ bool pll::_approx_eq(double a, double b) {
 void pll::_check_partitions_bounds(int partition) {
     int max_partitions = get_number_of_partitions();
     if (partition >= max_partitions) {
-        cerr << "The model has " << max_partitions << " partitions" << endl;
-        throw exception();
+        std::cerr << "The model has " << max_partitions << " partitions" << std::endl;
+        throw std::exception();
     }
 }
 
 void pll::_check_model_ready() {
     if (!_model_ready) {
-        cerr << "The model isn't ready for this operation" << endl;
-        throw exception();
+        std::cerr << "The model isn't ready for this operation" << std::endl;
+        throw std::exception();
     }
 }
 
-string pll::_model_name(int model_num) {
-    string name;
+std::string pll::_model_name(int model_num) {
+    std::string name;
     switch (model_num) {
 
         case PLL_DAYHOFF :
@@ -745,7 +745,7 @@ void pll::_update_all_brlens(double old_fracchange, double new_fracchange) {
     nodeptr p;
 
     p = tr->start;
-    if(!(isTip(p->number, tr->mxtips))) throw exception();
+    if(!(isTip(p->number, tr->mxtips))) throw std::exception();
 
     _update_brlens_recursive(p->back, tr->mxtips, old_fracchange, new_fracchange);
 }
@@ -772,7 +772,7 @@ void pll::_update_brlen(nodeptr p, double old_fracchange, double new_fracchange)
 }
 
 bool pll::isTip(int number, int maxTips) {
-    if(!(number > 0)) throw exception();
+    if(!(number > 0)) throw std::exception();
     if(number <= maxTips)
         return PLL_TRUE;
     else

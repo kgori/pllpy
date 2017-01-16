@@ -37,7 +37,7 @@ ext = Extension("pllpy",
 
 setup(cmdclass={'build_ext':my_build_ext},
       name="pllpy",
-      version="0.1.17",
+      version="0.1.18",
       author='Kevin Gori',
       author_email='kgori@ebi.ac.uk',
       description='Wrapper for Phylogenetic Likelihood Library',

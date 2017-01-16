@@ -436,9 +436,9 @@ void pll::set_optimisable_alpha(int partition, bool optimisable) {
     _evaluate_likelihood();
 }
 
-//double pll::get_frac_change() {
-//    return tr->fracchange;
-//}
+double pll::get_frac_change() {
+    return tr->fracchange;
+}
 
 void pll::set_optimisable_frequencies(int partition, bool optimisable) {
     _check_partitions_bounds(partition);

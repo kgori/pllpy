@@ -74,7 +74,7 @@ public:
     int                    get_number_of_threads();
     std::string                 get_tree();
     std::vector<std::vector<double>> get_empirical_frequencies();
-    double                 get_frac_change();
+//    double                 get_frac_change();
 
     // Setters
     void                   set_epsilon(double epsilon);
@@ -119,10 +119,10 @@ private:
     bool                   _is_tree_string(std::string tree_string);
     std::string                 _model_name(int model_num);
     void                   _destroy_model();
-    void                   _update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange);
-    void                   _update_all_brlens(double old_fracchange, double new_fracchange);
-    void                   _update_brlens_recursive(nodeptr p, int tips, double old_fracchange, double new_fracchange);
-    void                   _update_brlen(nodeptr p, double old_fracchange, double new_fracchange);
+//    void                   _update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange);
+//    void                   _update_all_brlens(double old_fracchange, double new_fracchange);
+//    void                   _update_brlens_recursive(nodeptr p, int tips, double old_fracchange, double new_fracchange);
+//    void                   _update_brlen(nodeptr p, double old_fracchange, double new_fracchange);
     bool                   isTip(int number, int maxTips);
 
     // Error checking

@@ -266,10 +266,10 @@ cdef class pll:
         py_result = <libcpp_string>_r
         return py_result
     
-    def get_frac_change(self):
-        cdef double _r = self.inst.get_frac_change()
-        py_result = <double>_r
-        return py_result
+    # def get_frac_change(self):
+    #     cdef double _r = self.inst.get_frac_change()
+    #     py_result = <double>_r
+    #     return py_result
     
     def link_frequencies(self, bytes linkage ):
         assert isinstance(linkage, bytes), 'arg linkage wrong type'

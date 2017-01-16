@@ -302,7 +302,7 @@ void pll::set_epsilon(double epsilon) {
 void pll::set_rates(std::vector<double> rates,
         int partition, bool optimisable) {
     _check_model_ready();
-    double old_fracchange = get_frac_change();
+//    double old_fracchange = get_frac_change();
     if (is_dna(partition)) {
         _check_partitions_bounds(partition);
         int num_states = partitions->partitionData[partition]->states;
@@ -313,8 +313,8 @@ void pll::set_rates(std::vector<double> rates,
         }
         pllSetSubstitutionMatrix(&(rates[0]), num_rates, partition, partitions, tr);
         set_optimisable_rates(partition, optimisable);
-        double new_fracchange = get_frac_change();
-        _update_q_matrix_and_brlens(partition, old_fracchange, new_fracchange);
+//        double new_fracchange = get_frac_change();
+//        _update_q_matrix_and_brlens(partition, old_fracchange, new_fracchange);
     }
 }
 
@@ -436,9 +436,9 @@ void pll::set_optimisable_alpha(int partition, bool optimisable) {
     _evaluate_likelihood();
 }
 
-double pll::get_frac_change() {
-    return tr->fracchange;
-}
+//double pll::get_frac_change() {
+//    return tr->fracchange;
+//}
 
 void pll::set_optimisable_frequencies(int partition, bool optimisable) {
     _check_partitions_bounds(partition);
@@ -733,43 +733,43 @@ std::string pll::_model_name(int model_num) {
     return name;
 }
 
-void pll::_update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange) {
-    pllInitReversibleGTR(tr, partitions, model);
-#if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-    pllMasterBarrier (tr, partitions, PLL_THREAD_COPY_RATES);
-#endif
-    _update_all_brlens (old_fracchange, new_fracchange);
-}
-
-void pll::_update_all_brlens(double old_fracchange, double new_fracchange) {
-    nodeptr p;
-
-    p = tr->start;
-    if(!(isTip(p->number, tr->mxtips))) throw std::exception();
-
-    _update_brlens_recursive(p->back, tr->mxtips, old_fracchange, new_fracchange);
-}
-
-void pll::_update_brlens_recursive(nodeptr p, int tips, double old_fracchange, double new_fracchange) {
-    _update_brlen(p, old_fracchange, new_fracchange);
-
-    if (!isTip (p->number, tips)) {
-        _update_brlens_recursive(p->next->back, tips, old_fracchange, new_fracchange);
-        _update_brlens_recursive(p->next->next->back, tips, old_fracchange, new_fracchange);
-    }
-}
-
-void pll::_update_brlen(nodeptr p, double old_fracchange, double new_fracchange) {
-    double z;
-    int j;
-
-    for (j = 0; j < PLL_NUM_BRANCHES; ++ j) {
-        z = exp ((log (p->z[j]) * old_fracchange) / new_fracchange);
-        if (z < PLL_ZMIN) z = PLL_ZMIN;
-        if (z > PLL_ZMAX) z = PLL_ZMAX;
-        p->z[j] = p->back->z[j] = z;
-    }
-}
+//void pll::_update_q_matrix_and_brlens(int model, double old_fracchange, double new_fracchange) {
+//    pllInitReversibleGTR(tr, partitions, model);
+//#if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
+//    pllMasterBarrier (tr, partitions, PLL_THREAD_COPY_RATES);
+//#endif
+//    _update_all_brlens (old_fracchange, new_fracchange);
+//}
+//
+//void pll::_update_all_brlens(double old_fracchange, double new_fracchange) {
+//    nodeptr p;
+//
+//    p = tr->start;
+//    if(!(isTip(p->number, tr->mxtips))) throw std::exception();
+//
+//    _update_brlens_recursive(p->back, tr->mxtips, old_fracchange, new_fracchange);
+//}
+//
+//void pll::_update_brlens_recursive(nodeptr p, int tips, double old_fracchange, double new_fracchange) {
+//    _update_brlen(p, old_fracchange, new_fracchange);
+//
+//    if (!isTip (p->number, tips)) {
+//        _update_brlens_recursive(p->next->back, tips, old_fracchange, new_fracchange);
+//        _update_brlens_recursive(p->next->next->back, tips, old_fracchange, new_fracchange);
+//    }
+//}
+//
+//void pll::_update_brlen(nodeptr p, double old_fracchange, double new_fracchange) {
+//    double z;
+//    int j;
+//
+//    for (j = 0; j < PLL_NUM_BRANCHES; ++ j) {
+//        z = exp ((log (p->z[j]) * old_fracchange) / new_fracchange);
+//        if (z < PLL_ZMIN) z = PLL_ZMIN;
+//        if (z > PLL_ZMAX) z = PLL_ZMAX;
+//        p->z[j] = p->back->z[j] = z;
+//    }
+//}
 
 bool pll::isTip(int number, int maxTips) {
     if(!(number > 0)) throw std::exception();

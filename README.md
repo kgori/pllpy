@@ -1,7 +1,8 @@
 # PLLPY
 This is a wrapper for the [phylogenetic likelihood library](http://www.libpll.org/) (libpll) of the [Exelixis lab](http://sco.h-its.org/exelixis/index.html).
 
-Install requirements:
+## Installation
+Requirements:
 
 - [cython](http://cython.org/)
 - libpll installed from [git](https://www.assembla.com/code/phylogenetic-likelihood-library/git/nodes/master) - version 1.0.0 is too old
@@ -16,7 +17,7 @@ Installing libpll:
    
 - GCC compiler versions 5 and above may need the -fgnu89-inline flag to compile libpll's inline functions, which are written in a pre-C99 style.
 
-Quick start:
+## Quick start:
 
 `pllpy` has a single class, `pll`. This wraps the pllInstance type of libpll. Initialising a pll object can be done as follows:
     
@@ -44,3 +45,12 @@ Maximum likelihood optimisation can be done using the `pll.optimise()` method:
     # Print the log-likelihood
     print(instance.get_likelihood())
     
+## Partition format
+
+The partition format is a list of regions of the alignment file:
+
+    Model, label1 = Start - End
+    Model, label2 = Start - End
+    Model, label3 = Start - End
+    
+`Start - End` defines the range of alignment columns. `Model` associates a phylogenetic model to the column range. This is `GTR` for DNA data, and `DAYHOFF, DCMUT, JTT, MTREV, WAG, RTREV, CPREV, VT, BLOSUM62, MTMAM, LG, MTART, MTZOA, PMB, HIVB, HIVW, JTTDCMUT, FLU, STMTREV, LG4M, LG4X, GTR` for protein data. `AUTO` can be used to automatically select the best model by AIC. Adding the suffix `F` to a model uses fixed empirical base frequencies. Adding `X` lets the base frequencies be optimised.

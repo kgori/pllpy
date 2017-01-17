@@ -107,7 +107,7 @@ void pll::optimise_branch_lengths(int num_iter) {
 
 void pll::optimise(bool rates, bool freqs, bool alphas, bool branches,
                    bool topology, int tree_search_interval, bool final_tree_search) {
-    if (!rates && !freqs && !alphas && !branches) return;
+    if (!rates && !freqs && !alphas && !branches && !topology) return;
     int i = 0;
     _check_model_ready();
     linkageList *alphaList = partitions->alphaList,
@@ -124,39 +124,45 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches,
         std::cout << "  iter " << i << " current lnl = " << current_likelihood << std::endl;
 
         if (rates) {
+            std::cout << "    optimising Q-matrix:     " << std::flush;
             pllOptRatesGeneric(tr, partitions, modelEpsilon, rateList);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            std::cout << "    optimising Q-matrix:     " << tr->likelihood << std::endl;
+            std::cout << tr->likelihood << std::endl;
         }
 
         if (branches) {
-            pllOptimizeBranchLengths(tr, partitions, 3);
+            std::cout << "    optimising branches:     " << std::flush;
+            pllOptimizeBranchLengths(tr, partitions, 16);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            std::cout << "    optimising branches:     " << tr->likelihood << std::endl;
+            std::cout << tr->likelihood << std::endl;
         }
 
         if (freqs) {
+            std::cout << "    optimising frequencies:  " << std::flush;
             pllOptBaseFreqs(tr, partitions, modelEpsilon, freqList);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            std::cout << "    optimising frequencies:  " << tr->likelihood << std::endl;
+            std::cout << tr->likelihood << std::endl;
         }
 
         if (branches && freqs) {
-            pllOptimizeBranchLengths(tr, partitions, 3);
+            std::cout << "    optimising branches:     " << std::flush;
+            pllOptimizeBranchLengths(tr, partitions, 16);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            std::cout << "    optimising branches:     " << tr->likelihood << std::endl;
+            std::cout << tr->likelihood << std::endl;
         }
 
         if (alphas) {
+            std::cout << "    optimising alphas:       " << std::flush;
             pllOptAlphasGeneric (tr, partitions, modelEpsilon, alphaList);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            std::cout << "    optimising alphas:       " << tr->likelihood << std::endl;
+            std::cout << tr->likelihood << std::endl;
         }
 
         if (branches && alphas) {
-            pllOptimizeBranchLengths(tr, partitions, 3);
+            std::cout << "    optimising branches:     " << std::flush;
+            pllOptimizeBranchLengths(tr, partitions, 16);
             pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-            std::cout << "    optimising branches:     " << tr->likelihood << std::endl;
+            std::cout << tr->likelihood << std::endl;
         }
 
         // Error - likelihood got worse!
@@ -175,7 +181,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches,
         }
 
         // Termination step - difference in likelihood between the start and end of this step is negligible
-        if (!(fabs(current_likelihood - tr->likelihood) > tr->likelihoodEpsilon) && tree_optimised) {
+        if (!(fabs(current_likelihood - tr->likelihood) > tr->likelihoodEpsilon) && (tree_optimised || !topology)) {
             if (final_tree_search && topology) {
                 std::cout << "Doing final tree search." << std::endl;
                 pllRaxmlSearchAlgorithm(tr, partitions, PLL_FALSE);
@@ -185,7 +191,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches,
                 }
 
                 if (branches) {
-                    pllOptimizeBranchLengths(tr, partitions, 3);
+                    pllOptimizeBranchLengths(tr, partitions, 32);
                     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
                 }
 
@@ -195,7 +201,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches,
                 }
 
                 if (branches && freqs) {
-                    pllOptimizeBranchLengths(tr, partitions, 3);
+                    pllOptimizeBranchLengths(tr, partitions, 32);
                     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
                 }
 
@@ -205,7 +211,7 @@ void pll::optimise(bool rates, bool freqs, bool alphas, bool branches,
                 }
 
                 if (branches && alphas) {
-                    pllOptimizeBranchLengths(tr, partitions, 3);
+                    pllOptimizeBranchLengths(tr, partitions, 32);
                     pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
                 }
 

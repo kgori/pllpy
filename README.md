@@ -25,7 +25,7 @@ Installing libpll:
     instance = pllpy.pll(alignment_file, partitions, starting_tree, nthreads, random_seed)
     
 - `alignment_file` is a Phylip-formatted input alignment file, passed as a string
-- `partitions` is the RAxML-format partition list that associates a phylogenetic model (or models) to the alignment. This format is described in the RAxML [manual](http://sco.h-its.org/exelixis/resource/download/NewManual.pdf) - it's the format of the file passed by `-q` to RAxML. There is an example below.
+- `partitions` is the RAxML-format partition list that associates a phylogenetic model (or models) to the alignment. This format is described in the RAxML [manual](http://sco.h-its.org/exelixis/resource/download/NewManual.pdf) - it's the format of the file passed by `-q` to RAxML. There is an example below. The value must be either a string filepath pointing to a file containing the partition description, or a string containing the partition description directly.
 - `starting_tree` is one of three choices. If it is a string, then it must be a file path pointing to a newick-formatted tree file. Otherwise it should be `True`, to generate a parsimony tree, or `False`, to generate a random tree.
 - `nthreads` sets the number of threads the pllInstance can use, if `pllpy` is linked to a multithreaded build of libpll.
 - `random_seed` is passed to the libpll random number generator.

@@ -49,7 +49,7 @@ public:
     virtual ~pll();
 
     // Run optimisations
-    void                   optimise(bool rates, bool freqs, bool alphas, bool branches);
+    void                   optimise(bool rates, bool freqs, bool alphas, bool branches, bool topology, int tree_search_interval, bool final_tree_search);
     void                   optimise_alphas();
     void                   optimise_branch_lengths(int num_iter=32);
     void                   optimise_freqs();

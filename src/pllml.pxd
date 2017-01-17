@@ -24,7 +24,7 @@ cdef extern from "pllml.h":
         pll(libcpp_string alignment_file, libcpp_string partitions, bool parsimony, int num_threads, long rns) except +
 
         # Run optimisations
-        void optimise(bool rates, bool freqs, bool alphas, bool branches) nogil except +
+        void optimise(bool rates, bool freqs, bool alphas, bool branches, bool topology, int tree_search_interval, bool final_tree_search) nogil except +
         void optimise_alphas() nogil except +
         void optimise_branch_lengths(int num_iter) nogil except +
         void optimise_freqs() nogil except +
@@ -46,7 +46,6 @@ cdef extern from "pllml.h":
         libcpp_vector[libcpp_vector[double]] get_rates() except +
         libcpp_vector[double]                get_rates_vector(int partition) except +
         int                                  get_number_of_partitions() except +
-        int                                  get_number_of_threads() except +
         libcpp_string                        get_tree() except +
         libcpp_vector[libcpp_vector[double]] get_empirical_frequencies() except +
         # double                               get_frac_change() except +
@@ -59,7 +58,6 @@ cdef extern from "pllml.h":
         void set_optimisable_alpha(int partition, bool optimisable) except +
         void set_optimisable_frequencies(int partition, bool optimisable) except +
         void set_optimisable_rates(int partition, bool optimisable) except +
-        void set_number_of_threads(int threads)
         void set_tree(libcpp_string nwk) except +
 
         # Partition management

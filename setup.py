@@ -45,6 +45,24 @@ class my_build_ext(build_ext):
 
         build_ext.build_extensions(self)
 
+def is_clang(bin):
+    proc = subprocess.Popen([bin, '-v'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    output = '\n'.join([stdout, stderr])
+    return not re.search(r'clang', output) is None
+
+class my_build_ext(build_ext):
+    def build_extensions(self):
+        binary = self.compiler.compiler[0]
+        if is_clang(binary):
+            for e in self.extensions:
+                e.extra_compile_args.append('-stdlib=libc++')
+                if platform.system() == 'Darwin':
+                    e.extra_compile_args.append('-mmacosx-version-min=10.7')
+                    e.extra_link_args.append('-mmacosx-version-min=10.7')
+
+        build_ext.build_extensions(self)
+
 ext = Extension("pllpy",
                 sources = ['src/pllpy.pyx', 'src/pllml.cpp'],
                 language="c++",

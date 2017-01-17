@@ -9,14 +9,12 @@ from  libc.string cimport const_char
 from cython.operator cimport dereference as deref, preincrement as inc, address as address
 from pllml cimport pll as _pll
 
-
 cdef class pll:
 
     cdef _pll *inst
 
     def __dealloc__(self):
          del self.inst
-
 
     def get_model_names(self):
         _r = self.inst.get_model_names()
@@ -27,7 +25,7 @@ cdef class pll:
         assert isinstance(partition, (int, long)), 'arg partition wrong type'
         assert isinstance(optimisable, (int, long)), 'arg optimisable wrong type'
 
-    
+
         self.inst.set_optimisable_rates((<int>partition), (<bool>optimisable))
     
     def optimise_freqs(self):
@@ -81,7 +79,7 @@ cdef class pll:
         assert isinstance(optimisable, (int, long)), 'arg optimisable wrong type'
         cdef libcpp_vector[double] v0 = rates
 
-    
+
         self.inst.set_rates(v0, (<int>partition), (<bool>optimisable))
         
     
@@ -139,7 +137,7 @@ cdef class pll:
         assert isinstance(optimisable, (int, long)), 'arg optimisable wrong type'
         cdef libcpp_vector[double] v0 = freqs
 
-    
+
         self.inst.set_frequencies(v0, (<int>partition), (<bool>optimisable))
         
     
@@ -154,7 +152,7 @@ cdef class pll:
         assert isinstance(partition, (int, long)), 'arg partition wrong type'
         assert isinstance(optimisable, (int, long)), 'arg optimisable wrong type'
 
-    
+
         self.inst.set_optimisable_frequencies((<int>partition), (<bool>optimisable))
     
     def is_optimisable_alpha(self,  partition ):

@@ -1,5 +1,5 @@
 # PLLPY
-This is a wrapper for the [phylogenetic likelihood library](http://www.libpll.org/) (PLL) of the [Exelixis lab](http://sco.h-its.org/exelixis/index.html).
+This is a wrapper for the [phylogenetic likelihood library](http://www.libpll.org/) (libpll) of the [Exelixis lab](http://sco.h-its.org/exelixis/index.html).
 
 Install requirements:
 
@@ -9,10 +9,39 @@ Install requirements:
 
 Installing libpll:
 
-- on Mac PLL can be installed via [homebrew](http://brew.sh/) using the homebrew-science tap
+- on Mac PLL can be installed via [homebrew](http://brew.sh/) using the homebrew-science tap (this should also work for linuxbrew)
 
    - `brew tap homebrew/homebrew-science`
 
    - `brew install --HEAD libpll`
+   
+- GCC compiler versions 5 and above may need the -fgnu89-inline flag to compile libpll's inline functions, which are written in a pre-C99 style.
 
-Documentation will follow.
+Quick start:
+
+`pllpy` has a single class, `pll`. This wraps the pllInstance type of libpll. Initialising a pll object can be done as follows:
+    
+    import pllpy
+    instance = pllpy.pll(alignment_file, partitions, starting_tree, nthreads, random_seed)
+    
+- `alignment_file` is a Phylip-formatted input alignment file, passed as a string
+- `partitions` is the RAxML-format partition list that associates a phylogenetic model (or models) to the alignment. This format is described in the RAxML [manual](http://sco.h-its.org/exelixis/resource/download/NewManual.pdf) - it's the format of the file passed by `-q` to RAxML. There is an example below.
+- `starting_tree` is one of three choices. If it is a string, then it must be a file path pointing to a newick-formatted tree file. Otherwise it should be `True`, to generate a parsimony tree, or `False`, to generate a random tree.
+- `nthreads` sets the number of threads the pllInstance can use, if `pllpy` is linked to a multithreaded build of libpll.
+- `random_seed` is passed to the libpll random number generator.
+
+Maximum likelihood optimisation can be done using the `pll.optimise()` method:
+    
+    # Optimise tree topology and all parameters, updating the topology every 5 steps (default):
+    instance.optimise(rates=True, branches=True, freqs=True, alphas=True,
+                      topology=True, tree_search_interval=5, final_tree_search=True)
+                      
+    # Equivalently:
+    instance.optimise()
+                      
+    # Just optimise the model parameters, not the tree topology:
+    instance.optimise(topology=False)
+    
+    # Print the log-likelihood
+    print(instance.get_likelihood())
+    

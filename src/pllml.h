@@ -41,83 +41,15 @@ struct NewickDeleter {
     }
 };
 
-struct AlignmentDeleter {
-    void operator()(pllAlignmentData *pAlignment) {
-        pllAlignmentDataDestroy(pAlignment);
-        //std::cout << "Alignment destroyed" << std::endl;
-    }
-};
-
-struct QueueDeleter {
-    void operator()(pllQueue *pQueue) {
-        pllQueuePartitionsDestroy(&pQueue);
-        //std::cout << "Queue destroyed" << std::endl;
-    }
-};
-
-struct NewickDeleter {
-    void operator()(pllNewickTree *pNewick) {
-        pllNewickParseDestroy(&pNewick);
-        //std::cout << "Newick destroyed" << std::endl;
-    }
-};
-
-struct InstanceDeleter {
-    void operator()(pllInstance *pInstance) {
-        pllDestroyInstance(pInstance);
-        //std::cout << "Instance Destroyed" << std::endl;
-    }
-};
-
-typedef std::unique_ptr<pllAlignmentData, AlignmentDeleter> alignmentUPtr;
-typedef std::unique_ptr<pllNewickTree, NewickDeleter> newickUPtr;
-typedef std::unique_ptr<pllQueue, QueueDeleter> queueUPtr;
-typedef std::unique_ptr<pllInstance, InstanceDeleter> instanceUPtr;
-
-struct AlignmentDeleter {
-    void operator()(pllAlignmentData *pAlignment) {
-        pllAlignmentDataDestroy(pAlignment);
-        //std::cout << "Alignment destroyed" << std::endl;
-    }
-};
-
-struct QueueDeleter {
-    void operator()(pllQueue *pQueue) {
-        pllQueuePartitionsDestroy(&pQueue);
-        //std::cout << "Queue destroyed" << std::endl;
-    }
-};
-
-struct NewickDeleter {
-    void operator()(pllNewickTree *pNewick) {
-        pllNewickParseDestroy(&pNewick);
-        //std::cout << "Newick destroyed" << std::endl;
-    }
-};
-
-struct InstanceDeleter {
-    void operator()(pllInstance *pInstance) {
-        pllDestroyInstance(pInstance);
-        //std::cout << "Instance Destroyed" << std::endl;
-    }
-};
-
-typedef std::unique_ptr<pllAlignmentData, AlignmentDeleter> alignmentUPtr;
-typedef std::unique_ptr<pllNewickTree, NewickDeleter> newickUPtr;
-typedef std::unique_ptr<pllQueue, QueueDeleter> queueUPtr;
-typedef std::unique_ptr<pllInstance, InstanceDeleter> instanceUPtr;
-
 class pll {
 public:
     // Make and destroy
     pll(std::string alignment_file, std::string partitions, std::string tree, int num_threads = 1, long rns=0xDEADBEEF);
     pll(std::string alignment_file, std::string partitions, bool parsimony, int num_threads = 1, long rns=0xDEADBEEF);
     virtual ~pll();
-    pll(pll&& rhs) = delete;               // No copy       - need to deep copy all pointed-at data
-    pll& operator=(pll&& rhs) = delete;    // No assignment - (seems like too much work)
 
     // Run optimisations
-    void                   optimise(bool rates, bool freqs, bool alphas, bool branches);
+    void                   optimise(bool rates, bool freqs, bool alphas, bool branches, bool topology, int tree_search_interval, bool final_tree_search);
     void                   optimise_alphas();
     void                   optimise_branch_lengths(int num_iter=32);
     void                   optimise_freqs();
@@ -208,6 +140,7 @@ private:
     std::string partition_file;
     bool _instance_ready   = false;
     bool _model_ready      = false;
+    bool _alignment_ready  = false;
     bool _partitions_ready = false;
     bool _tree_ready       = false;
 };

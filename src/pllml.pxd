@@ -24,7 +24,7 @@ cdef extern from "pllml.h":
         pll(libcpp_string alignment_file, libcpp_string partitions, bool parsimony, int num_threads, long rns) except +
 
         # Run optimisations
-        void optimise(bool rates, bool freqs, bool alphas, bool branches) nogil except +
+        void optimise(bool rates, bool freqs, bool alphas, bool branches, bool topology, int tree_search_interval, bool final_tree_search) nogil except +
         void optimise_alphas() nogil except +
         void optimise_branch_lengths(int num_iter) nogil except +
         void optimise_freqs() nogil except +
